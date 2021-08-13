@@ -1,0 +1,39 @@
+{
+  "name": "pkg-lib",
+  "version": "0.1.0",
+  "description": "Bundler for libraries",
+  "main": "dist/index.js",
+  "bin": {
+    "pkg-lib": "bin.js"
+  },
+  "scripts": {
+    "build": "ts-node bin.ts build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alduino/pkg-lib.git"
+  },
+  "keywords": [
+    "bundler",
+    "library"
+  ],
+  "author": "Alduino",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Alduino/pkg-lib/issues"
+  },
+  "homepage": "https://github.com/Alduino/pkg-lib#readme",
+  "dependencies": {
+    "@esbuild-plugins/node-resolve": "^0.1.4",
+    "consola": "^2.15.3",
+    "esbuild": "^0.12.20",
+    "listr2": "^3.11.0",
+    "sade": "^1.7.4"
+  },
+  "devDependencies": {
+    "@types/node": "^16.6.1",
+    "@types/sade": "^1.7.3",
+    "ts-node": "^10.2.0",
+    "typescript": "^4.3.5"
+  }
+}
