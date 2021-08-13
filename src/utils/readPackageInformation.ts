@@ -4,6 +4,8 @@ import logger from "consola";
 
 export interface Package {
     name: string;
+    dependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
 }
 
 export default async function readPackageInformation() {
@@ -17,6 +19,8 @@ export default async function readPackageInformation() {
     }
 
     return {
-        name: content.name
+        name: content.name,
+        dependencies: content.dependencies,
+        peerDependencies: content.peerDependencies
     };
 }

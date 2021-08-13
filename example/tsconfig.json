@@ -3,8 +3,9 @@
     "module": "commonjs",
     "target": "es5",
     "sourceMap": true,
-    "jsx": "react",
-    "esModuleInterop": true
+    "jsx": "react-jsxdev",
+    "esModuleInterop": true,
+    "isolatedModules": true
   },
   "exclude": [
     "node_modules"
