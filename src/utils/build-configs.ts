@@ -28,7 +28,7 @@ function reactJsxPlugin(entrypoint: string, jsx: JSX, isDev: boolean): Plugin {
             build.onLoad({filter: /\.tsx$/}, async args => {
                 const src = await readFile(args.path, "utf8");
                 const result = await transform(src, {
-                    filename: "/" + relative(entrypoint, args.path),
+                    filename: "/" + relative(entryDir, args.path),
                     plugins: [
                         ["@babel/plugin-transform-typescript", {
                             isTSX: true
