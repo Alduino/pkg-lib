@@ -5,4 +5,5 @@ export default interface ListrContext {
     opts: BuildOpts;
     jsx?: "react-jsx" | "createElement";
     config?: Config;
+    watch?: boolean;
 }

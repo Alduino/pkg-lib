@@ -14,12 +14,13 @@ const readers: ConfigReader[] = [
     {
         path: "package.json",
         read(source) {
-            const {source: entrypoint, main, module} = JSON.parse(source);
+            const {source: entrypoint, main, module, typings} = JSON.parse(source);
 
             return {
                 entrypoint,
                 cjsOut: main,
-                esmOut: module
+                esmOut: module,
+                typings: typings
             };
         }
     },
@@ -39,7 +40,8 @@ export default async function readConfig(): Promise<Config> {
         cjsDevOut: `dist/${packageInfo.name}.development.js`,
         cjsProdOut: `dist/${packageInfo.name}.production.min.js`,
         esmOut: "dist/index.mjs",
-        target: "node12"
+        target: "node12",
+        typings: "dist/index.d.ts"
     };
 
     const configWithAbsPath = await Promise.all(readers.map(async reader => {
@@ -58,6 +60,7 @@ export default async function readConfig(): Promise<Config> {
         if (fileConfig.cjsOut) configObj.cjsOut = await resolveUserFile(fileConfig.cjsOut);
         if (fileConfig.esmOut) configObj.esmOut = await resolveUserFile(fileConfig.esmOut);
         if (fileConfig.entrypoint) configObj.entrypoint = await resolveUserFile(fileConfig.entrypoint);
+        if (fileConfig.typings) configObj.typings = await resolveUserFile(fileConfig.typings);
     }
 
     if (!configObj.entrypoint) configObj.entrypoint = await detectEntrypoint();

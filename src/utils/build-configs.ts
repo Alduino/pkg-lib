@@ -75,14 +75,14 @@ export function createCommonJsDevBuild(config: Config, jsx: JSX): BuildOptions {
 }
 
 export function createCommonJsProdBuild(config: Config, jsx: JSX): BuildOptions {
-   return {
-       ...getCommonEsbuildOptions(config, [
-           jsx && reactJsxPlugin(config.entrypoint, jsx, false)
-       ]),
-       outfile: config.cjsProdOut,
-       format: "cjs",
-       minify: true
-   };
+    return {
+        ...getCommonEsbuildOptions(config, [
+            jsx && reactJsxPlugin(config.entrypoint, jsx, false)
+        ]),
+        outfile: config.cjsProdOut,
+        format: "cjs",
+        minify: true
+    };
 }
 
 export function createEsmBuild(config: Config, jsx: JSX): BuildOptions {
