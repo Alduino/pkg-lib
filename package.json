@@ -55,6 +55,7 @@
   },
   "files": [
     "dist",
-    "bin.js"
+    "bin.js",
+    "dev.d.ts"
   ]
 }

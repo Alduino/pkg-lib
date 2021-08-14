@@ -70,7 +70,11 @@ export function createCommonJsDevBuild(config: Config, jsx: JSX): BuildOptions {
             jsx && reactJsxPlugin(config.entrypoint, jsx, true)
         ]),
         outfile: config.cjsDevOut,
-        format: "cjs"
+        format: "cjs",
+        define: {
+            __DEV__: "true",
+            "process.env.NODE_ENV": '"development"'
+        }
     };
 }
 
@@ -81,7 +85,11 @@ export function createCommonJsProdBuild(config: Config, jsx: JSX): BuildOptions 
         ]),
         outfile: config.cjsProdOut,
         format: "cjs",
-        minify: true
+        minify: true,
+        define: {
+            __DEV__: "false",
+            "process.env.NODE_ENV": '"production"'
+        }
     };
 }
 
@@ -91,6 +99,10 @@ export function createEsmBuild(config: Config, jsx: JSX): BuildOptions {
             jsx && reactJsxPlugin(config.entrypoint, jsx, false)
         ]),
         outfile: config.esmOut,
-        format: "esm"
+        format: "esm",
+        define: {
+            __DEV__: "false",
+            "process.env.NODE_ENV": '"production"'
+        }
     };
 }
