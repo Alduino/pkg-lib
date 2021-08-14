@@ -3,11 +3,11 @@ import ListrContext from "./ListrContext";
 import readTsconfig from "../utils/readTsconfig";
 import readPackageInformation from "../utils/readPackageInformation";
 import {name} from "../../package.json";
-import {basename, dirname, extname} from "path";
+import {basename, dirname, extname, join, relative} from "path";
 import getTemporaryFile from "../utils/getTemporaryFile";
 import {unlink, writeFile} from "fs/promises";
-import {generateDtsBundle} from "dts-bundle-generator";
-import resolveUserFile from "../utils/resolveUserFile";
+import resolveUserFile, {getUserDirectory} from "../utils/resolveUserFile";
+import execa from "execa";
 
 async function buildRef(file: string, enabled: boolean) {
     if (!enabled) return "";
@@ -40,29 +40,68 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
             },
             {
                 title: "Build declaration",
-                async task({config, tsDeclTempFile}) {
-                    const dtsBundle = generateDtsBundle([{
-                        filePath: tsDeclTempFile
-                    }], {
-                        preferredConfigPath: await resolveUserFile("tsconfig.json")
-                    })[0];
+                async task(ctx, task) {
+                    const {config, tsDeclTempFile} = ctx;
 
-                    await writeFile(config.typings, dtsBundle);
+                    const userDir = await getUserDirectory();
+                    const tsconfigPath = relative(userDir, await resolveUserFile("tsconfig.json"));
+                    const typingsDir = join(relative(userDir, dirname(config.typings)), "typings");
+
+                    const args = [
+                        "--declaration", "--emitDeclarationOnly",
+                        "--rootDir", ".",
+                        "--project", tsconfigPath,
+                        "--outDir", typingsDir
+                    ];
+
+                    try {
+                        const cp = execa(
+                            "tsc",
+                            args,
+                            {
+                                preferLocal: true,
+                                cwd: userDir
+                            }
+                        );
+
+                        task.output = `Executing \`${cp.spawnargs.join(" ")}\``;
+                        await cp;
+                        task.output = "";
+                    } catch (err) {
+                        task.output = err.message;
+                        throw err;
+                    }
+                },
+                rollback({tsDeclTempFile}) {
+                    return unlink(tsDeclTempFile);
+                },
+                options: {
+                    persistentOutput: true
                 }
             },
             {
                 title: "Cleanup",
-                async task(ctx) {
-                    await unlink(ctx.tsDeclTempFile);
-                    ctx.tsDeclTempFile = undefined;
+                async task({config, tsDeclTempFile}) {
+                    await unlink(tsDeclTempFile);
+                    await unlink(join(
+                        dirname(config.typings),
+                        "typings",
+                        relative(
+                            await getUserDirectory(),
+                            join(dirname(tsDeclTempFile), basename(tsDeclTempFile, ".ts") + ".d.ts")
+                        )
+                    ));
+                }
+            },
+            {
+                title: "Create entrypoint",
+                async task({config}) {
+                    const entrypointTs = relative(await getUserDirectory(), config.entrypoint);
+                    const entrypointDts = `./typings/${join(dirname(entrypointTs), basename(entrypointTs, ".ts"))}`;
+                    await writeFile(config.typings, `export * from ${JSON.stringify(entrypointDts)};`);
                 }
             }
         ]);
-    },
-    async rollback(ctx) {
-        if (ctx.tsDeclTempFile) {
-            await unlink(ctx.tsDeclTempFile);
-        }
     }
 };
 

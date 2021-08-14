@@ -34,9 +34,9 @@
     "@babel/plugin-transform-typescript": "^7.15.0",
     "@esbuild-plugins/node-resolve": "^0.1.4",
     "consola": "^2.15.3",
-    "dts-bundle-generator": "^5.9.0",
     "enquirer": "^2.3.6",
     "esbuild": "^0.12.20",
+    "execa": "^5.1.1",
     "listr2": "^3.11.0",
     "resolve-bin": "^0.4.1",
     "sade": "^1.7.4"
