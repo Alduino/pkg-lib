@@ -52,5 +52,9 @@
   },
   "peerDependencies": {
     "typescript": "^4.3.5"
-  }
+  },
+  "files": [
+    "dist",
+    "bin.js"
+  ]
 }
