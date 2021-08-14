@@ -9,6 +9,13 @@ import {unlink, writeFile} from "fs/promises";
 import {generateDtsBundle} from "dts-bundle-generator";
 import resolveUserFile from "../utils/resolveUserFile";
 
+async function buildRef(file: string, enabled: boolean) {
+    if (!enabled) return "";
+    const {name: theirName} = await readPackageInformation();
+    if (theirName === name) return `/// <reference path="../${file}.d.ts" />`;
+    return `/// <reference types="${name}/${file}" />`;
+}
+
 const typescriptDeclTasks: ListrTask<ListrContext> = {
     title: "Typescript declaration",
     enabled: () => readTsconfig().then(r => !!r),
@@ -19,13 +26,12 @@ const typescriptDeclTasks: ListrTask<ListrContext> = {
                 async task(ctx) {
                     const {config} = ctx;
 
-                    const {name: theirName} = await readPackageInformation();
-                    const refProp = theirName === name ? `path="../dev.d.ts"` : `types="${name}/dev"`;
+                    const devRef = await buildRef("dev", config.dev);
 
                     const realEntrypointModulePath = "./" + basename(config.entrypoint, extname(config.entrypoint));
 
                     const entrypointFileName = getTemporaryFile(dirname(config.entrypoint), "index", "ts");
-                    const entrypointContent = `/// <reference ${refProp} />
+                    const entrypointContent = `${devRef}
 export * from ${JSON.stringify(realEntrypointModulePath)};`;
                     await writeFile(entrypointFileName, entrypointContent);
 

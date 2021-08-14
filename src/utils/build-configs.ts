@@ -72,8 +72,10 @@ export function createCommonJsDevBuild(config: Config, jsx: JSX): BuildOptions {
         outfile: config.cjsDevOut,
         format: "cjs",
         define: {
-            __DEV__: "true",
-            "process.env.NODE_ENV": '"development"'
+            ...(config.dev && {
+                __DEV__: "true",
+                "process.env.NODE_ENV": '"development"'
+            })
         }
     };
 }
@@ -87,8 +89,10 @@ export function createCommonJsProdBuild(config: Config, jsx: JSX): BuildOptions 
         format: "cjs",
         minify: true,
         define: {
-            __DEV__: "false",
-            "process.env.NODE_ENV": '"production"'
+            ...(config.dev && {
+                __DEV__: "false",
+                "process.env.NODE_ENV": '"production"'
+            })
         }
     };
 }
@@ -101,8 +105,10 @@ export function createEsmBuild(config: Config, jsx: JSX): BuildOptions {
         outfile: config.esmOut,
         format: "esm",
         define: {
-            __DEV__: "false",
-            "process.env.NODE_ENV": '"production"'
+            ...(config.dev && {
+                __DEV__: "false",
+                "process.env.NODE_ENV": '"production"'
+            })
         }
     };
 }

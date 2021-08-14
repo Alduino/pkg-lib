@@ -6,4 +6,5 @@ export default interface Config {
     cjsProdOut: string;
     esmOut: string;
     target: string;
+    dev: boolean;
 }

@@ -41,7 +41,8 @@ export default async function readConfig(): Promise<Config> {
         cjsProdOut: `dist/${packageInfo.name}.production.min.js`,
         esmOut: "dist/index.mjs",
         target: "node12",
-        typings: "dist/index.d.ts"
+        typings: "dist/index.d.ts",
+        dev: true
     };
 
     const configWithAbsPath = await Promise.all(readers.map(async reader => {
@@ -61,6 +62,7 @@ export default async function readConfig(): Promise<Config> {
         if (fileConfig.esmOut) configObj.esmOut = await resolveUserFile(fileConfig.esmOut);
         if (fileConfig.entrypoint) configObj.entrypoint = await resolveUserFile(fileConfig.entrypoint);
         if (fileConfig.typings) configObj.typings = await resolveUserFile(fileConfig.typings);
+        if (fileConfig.dev === false) configObj.dev = false;
     }
 
     if (!configObj.entrypoint) configObj.entrypoint = await detectEntrypoint();
