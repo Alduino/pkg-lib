@@ -13,13 +13,23 @@ const bundleCommonjsTasks: ListrTask<ListrContext> = {
             {
                 title: "Development module",
                 async task({config, jsx}) {
-                    await build(createCommonJsDevBuild(config, jsx));
+                    const log: string[] = [];
+                    await build(await createCommonJsDevBuild(config, jsx, log));
+                    task.output = log.join("\n");
+                },
+                options: {
+                    persistentOutput: true
                 }
             },
             {
                 title: "Production module",
                 async task({config, jsx}) {
-                    await build(createCommonJsProdBuild(config, jsx));
+                    const log: string[] = [];
+                    await build(await createCommonJsProdBuild(config, jsx, log));
+                    task.output = log.join("\n");
+                },
+                options: {
+                    persistentOutput: true
                 }
             },
             {
@@ -34,7 +44,10 @@ const bundleCommonjsTasks: ListrTask<ListrContext> = {
                 }
             }
         ], {
-            concurrent: true
+            rendererOptions: {
+                clearOutput: false,
+                collapse: false
+            }
         });
     }
 };

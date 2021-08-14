@@ -2,12 +2,16 @@ lockfileVersion: 5.3
 
 specifiers:
   '@babel/core': ^7.15.0
+  '@babel/helper-plugin-utils': ^7.14.5
   '@babel/plugin-transform-react-jsx': ^7.14.9
   '@babel/plugin-transform-react-jsx-development': ^7.14.5
   '@babel/plugin-transform-typescript': ^7.15.0
+  '@babel/types': ^7.15.0
   '@changesets/cli': ^2.16.0
   '@esbuild-plugins/node-resolve': ^0.1.4
   '@types/babel__core': ^7.1.15
+  '@types/babel__helper-plugin-utils': ^7.10.0
+  '@types/babel__traverse': ^7.14.2
   '@types/node': ^16.6.1
   '@types/resolve-bin': ^0.4.1
   '@types/sade': ^1.7.3
@@ -23,6 +27,7 @@ specifiers:
 
 dependencies:
   '@babel/core': 7.15.0
+  '@babel/helper-plugin-utils': 7.14.5
   '@babel/plugin-transform-react-jsx': 7.14.9_@babel+core@7.15.0
   '@babel/plugin-transform-react-jsx-development': 7.14.5_@babel+core@7.15.0
   '@babel/plugin-transform-typescript': 7.15.0_@babel+core@7.15.0
@@ -36,8 +41,11 @@ dependencies:
   sade: 1.7.4
 
 devDependencies:
+  '@babel/types': 7.15.0
   '@changesets/cli': 2.16.0
   '@types/babel__core': 7.1.15
+  '@types/babel__helper-plugin-utils': 7.10.0
+  '@types/babel__traverse': 7.14.2
   '@types/node': 16.6.1
   '@types/resolve-bin': 0.4.1
   '@types/sade': 1.7.3
@@ -614,6 +622,12 @@ packages:
     resolution: {integrity: sha512-/GWCmzJWqV7diQW54smJZzWbSFf4QYtF71WCKhcx6Ru/tFyQIY2eiiITcCAeuPbNSvT9YCGkVMqqvSk2Z0mXiA==}
     dependencies:
       '@babel/types': 7.15.0
+    dev: true
+
+  /@types/babel__helper-plugin-utils/7.10.0:
+    resolution: {integrity: sha512-60YtHzhQ9HAkToHVV+TB4VLzBn9lrfgrsOjiJMtbv/c1jPdekBxaByd6DMsGBzROXWoIL6U3lEFvvbu69RkUoA==}
+    dependencies:
+      '@types/babel__core': 7.1.15
     dev: true
 
   /@types/babel__template/7.4.1:

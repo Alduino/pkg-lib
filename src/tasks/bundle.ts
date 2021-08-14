@@ -11,7 +11,12 @@ const bundleTasks: ListrTask<ListrContext> = {
             bundleCommonjsTasks,
             bundleEsmTasks,
             typescriptDeclTasks
-        ]);
+        ], {
+            rendererOptions: {
+                clearOutput: false,
+                collapse: false
+            }
+        });
     }
 };
 

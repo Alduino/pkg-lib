@@ -9,11 +9,21 @@ const bundleEsmTasks: ListrTask<ListrContext> = {
         return task.newListr([
             {
                 title: "Module",
-                async task({config, jsx}) {
-                    await build(createEsmBuild(config, jsx));
+                async task({config, jsx}, task) {
+                    const log: string[] = [];
+                    await build(await createEsmBuild(config, jsx, log));
+                    task.output = log.join("\n");
+                },
+                options: {
+                    persistentOutput: true
                 }
             }
-        ]);
+        ], {
+            rendererOptions: {
+                clearOutput: false,
+                collapse: false
+            }
+        });
     }
 };
 
