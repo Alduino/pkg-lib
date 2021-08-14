@@ -1,5 +1,5 @@
 {
-  "name": "pkg-lib",
+  "name": "@alduino/pkg-lib",
   "version": "0.1.0",
   "description": "Bundler for libraries",
   "main": "dist/index.js",
