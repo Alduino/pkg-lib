@@ -5,7 +5,7 @@ import readPackageInformation from "../utils/readPackageInformation";
 import {name} from "../../package.json";
 import {basename, dirname, extname, join, relative} from "path";
 import getTemporaryFile from "../utils/getTemporaryFile";
-import {unlink, writeFile} from "fs/promises";
+import {rm, writeFile} from "fs/promises";
 import resolveUserFile, {getUserDirectory} from "../utils/resolveUserFile";
 import execa from "execa";
 
@@ -21,6 +21,14 @@ const typescriptDeclTasks: ListrTask<ListrContext> = {
     enabled: () => readTsconfig().then(r => !!r),
     async task(_, task) {
         return task.newListr([
+            {
+                title: "Clean output directory",
+                async task({config}) {
+                    const outputDir = join(dirname(config.typings), "typings");
+                    await rm(outputDir, {recursive: true, force: true});
+                    await rm(config.typings, {force: true});
+                }
+            },
             {
                 title: "Create temporary entrypoint",
                 async task(ctx) {
@@ -41,7 +49,7 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
             {
                 title: "Build declaration",
                 async task(ctx, task) {
-                    const {config, tsDeclTempFile} = ctx;
+                    const {config} = ctx;
 
                     const userDir = await getUserDirectory();
                     const tsconfigPath = relative(userDir, await resolveUserFile("tsconfig.json"));
@@ -73,7 +81,7 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
                     }
                 },
                 rollback({tsDeclTempFile}) {
-                    return unlink(tsDeclTempFile);
+                    return rm(tsDeclTempFile);
                 },
                 options: {
                     persistentOutput: true
@@ -82,8 +90,8 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
             {
                 title: "Cleanup",
                 async task({config, tsDeclTempFile}) {
-                    await unlink(tsDeclTempFile);
-                    await unlink(join(
+                    await rm(tsDeclTempFile);
+                    await rm(join(
                         dirname(config.typings),
                         "typings",
                         relative(
