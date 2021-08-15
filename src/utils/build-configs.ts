@@ -22,6 +22,8 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
     const invariantFunctionNames: string[] = opts.invariant;
     const warningFunctionNames: string[] = opts.warning;
 
+    const replaceDevWithProcessEnv: boolean = opts.replaceDevWithProcessEnv;
+
     function logWarning(message: string, fileName: string, node: Node) {
         opts.log?.push(createWarning(message, fileName, node));
     }
@@ -57,7 +59,11 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
             return;
         }
 
-        const callExpr = isDev ? t.callExpression(callee.node, [falseLiteral, secondArgument.node]) : t.callExpression(callee.node, [falseLiteral]);
+        const devExpr = t.callExpression(callee.node, [falseLiteral, secondArgument.node]);
+        const prodExpr = t.callExpression(callee.node, [falseLiteral]);
+        const joined = t.conditionalExpression(t.binaryExpression("!==", t.memberExpression(t.memberExpression(t.identifier("process"), t.identifier("env")), t.identifier("NODE_ENV")), t.stringLiteral("production")), devExpr, prodExpr);
+
+        const callExpr = isDev === true ? devExpr : isDev === false ? prodExpr : joined;
         path.replaceWith(t.logicalExpression("||", firstArgument.node, callExpr));
         path.skip();
     }
@@ -81,12 +87,17 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
             return;
         }
 
-        if (!isDev) {
+        const devExpr = t.callExpression(callee.node, [falseLiteral, ...args.map(arg => arg.node)]);
+
+        if (isDev === false) {
             path.remove();
             return;
+        } else if (isDev === true) {
+            path.replaceWith(t.logicalExpression("||", firstArgument.node, devExpr));
+        } else {
+            path.replaceWith(t.logicalExpression("||", t.logicalExpression("&&", firstArgument.node, t.binaryExpression("!==", t.memberExpression(t.memberExpression(t.identifier("process"), t.identifier("env")), t.identifier("NODE_ENV")), t.stringLiteral("production"))), devExpr));
         }
 
-        path.replaceWith(t.logicalExpression("||", firstArgument.node, t.callExpression(callee.node, [falseLiteral, ...args.map(arg => arg.node)])));
         path.skip();
     }
 
@@ -103,12 +114,17 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
                 } else if (warningFunctionNames.includes(callee.node.name)) {
                     rebuildWarning(path);
                 }
+            },
+            Identifier(path) {
+                if (replaceDevWithProcessEnv && path.node.name === "__DEV__" && !t.isObjectMember(path.parent)) {
+                    path.replaceWith(t.binaryExpression("!==", t.memberExpression(t.memberExpression(t.identifier("process"), t.identifier("env")), t.identifier("NODE_ENV")), t.stringLiteral("production")));
+                }
             }
         }
     };
 });
 
-async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean, log?: string[]): Promise<Plugin> {
+async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log?: string[]): Promise<Plugin> {
     const entryDir = await getUserDirectory();
 
     return {
@@ -121,11 +137,12 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean, log?: stri
                     plugins: [
                         "@babel/plugin-transform-typescript",
                         [invariantBabelPlugin, {
-                            isDev,
+                            isDev: isDev ?? -1,
                             log,
                             file: relative(entryDir, args.path),
                             invariant: config.invariant,
-                            warning: config.warning
+                            warning: config.warning,
+                            replaceDevWithProcessEnv: isDev === null && config.dev
                         }]
                     ]
                 });
@@ -144,7 +161,7 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean, log?: stri
                             runtime: jsx === "react-jsx" ? "automatic" : "classic"
                         }],
                         [invariantBabelPlugin, {
-                            isDev,
+                            isDev: isDev ?? -1,
                             log,
                             file: relative(entryDir, args.path),
                             invariant: config.invariant,
@@ -163,7 +180,7 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean, log?: stri
                             runtime: jsx === "react-jsx" ? "automatic" : "classic"
                         }],
                         [invariantBabelPlugin, {
-                            isDev,
+                            isDev: isDev ?? -1,
                             log,
                             file: relative(entryDir, args.path),
                             invariant: config.invariant,
@@ -233,15 +250,9 @@ export async function createCommonJsProdBuild(config: Config, jsx: JSX, log?: st
 export async function createEsmBuild(config: Config, jsx: JSX, log?: string[]): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(config, jsx, false, log)
+            jsx && await pkglibPlugin(config, jsx, null, log)
         ]),
         outfile: config.esmOut,
-        format: "esm",
-        define: {
-            ...(config.dev && {
-                __DEV__: "false",
-                "process.env.NODE_ENV": '"production"'
-            })
-        }
+        format: "esm"
     };
 }
