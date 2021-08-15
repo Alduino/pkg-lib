@@ -19,6 +19,8 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
     const isDev: boolean = opts.isDev ?? true;
     const file = opts.file;
 
+    const requireExpressionStatements: boolean = opts.requireExpressionStatements;
+
     const invariantFunctionNames: string[] = opts.invariant;
     const warningFunctionNames: string[] = opts.warning;
 
@@ -34,7 +36,7 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
         const callee = path.get("callee");
         const [firstArgument, secondArgument] = path.get("arguments");
 
-        if (!t.isExpressionStatement(path.parent)) {
+        if (requireExpressionStatements && !t.isExpressionStatement(path.parent)) {
             logWarning("Invalid `invariant` call. Cannot be used as part of an expression.", file, path.node);
             return;
         }
@@ -72,7 +74,7 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
         const callee = path.get("callee");
         const [firstArgument, ...args] = path.get("arguments");
 
-        if (!t.isExpressionStatement(path.parent)) {
+        if (requireExpressionStatements && !t.isExpressionStatement(path.parent)) {
             logWarning("Invalid `warning` call. Cannot be used as part of an expression.", file, path.node);
             return;
         }
@@ -142,7 +144,8 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log
                             file: relative(entryDir, args.path),
                             invariant: config.invariant,
                             warning: config.warning,
-                            replaceDevWithProcessEnv: isDev === null && config.dev
+                            replaceDevWithProcessEnv: isDev === null && config.dev,
+                            requireExpressionStatements: config.recommendedExprCheck
                         }]
                     ]
                 });
@@ -165,7 +168,8 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log
                             log,
                             file: relative(entryDir, args.path),
                             invariant: config.invariant,
-                            warning: config.warning
+                            warning: config.warning,
+                            requireExpressionStatements: config.recommendedExprCheck
                         }]
                     ].filter(v => v)
                 });
@@ -184,7 +188,8 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log
                             log,
                             file: relative(entryDir, args.path),
                             invariant: config.invariant,
-                            warning: config.warning
+                            warning: config.warning,
+                            requireExpressionStatements: config.recommendedExprCheck
                         }]
                     ]
                 });

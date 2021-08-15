@@ -9,4 +9,5 @@ export default interface Config {
     dev: boolean;
     invariant: string[];
     warning: string[];
+    recommendedExprCheck: boolean;
 }

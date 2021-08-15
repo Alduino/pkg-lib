@@ -51,7 +51,8 @@ export default async function readConfig(): Promise<Config> {
         typings: "dist/index.d.ts",
         dev: true,
         invariant: ["invariant"],
-        warning: ["warning"]
+        warning: ["warning"],
+        recommendedExprCheck: true
     };
 
     const configWithAbsPath = await Promise.all(readers.map(async reader => {
@@ -78,6 +79,7 @@ export default async function readConfig(): Promise<Config> {
         if (Array.isArray(fileConfig.warning)) configObj.warning = fileConfig.warning;
         else if (fileConfig.warning === false) configObj.warning = [];
         else if (fileConfig.warning != null) configObj.warning = [fileConfig.warning];
+        if (fileConfig.recommendedExprCheck === false) configObj.recommendedExprCheck = false;
     }
 
     if (!configObj.entrypoint) configObj.entrypoint = await detectEntrypoint();
