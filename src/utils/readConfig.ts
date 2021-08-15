@@ -5,9 +5,16 @@ import resolveUserFile from "./resolveUserFile";
 import detectEntrypoint from "./detectEntrypoint";
 import readPackageInformation from "./readPackageInformation";
 
+interface FileConfigChanges {
+    invariant: string[] | string | false;
+    warning: string[] | string | false;
+}
+
+type FileConfig = Omit<Config, keyof FileConfigChanges> & FileConfigChanges;
+
 interface ConfigReader {
     path: string;
-    read(source: string): Config;
+    read(source: string): FileConfig;
 }
 
 const readers: ConfigReader[] = [
@@ -42,7 +49,9 @@ export default async function readConfig(): Promise<Config> {
         esmOut: "dist/index.mjs",
         target: "node12",
         typings: "dist/index.d.ts",
-        dev: true
+        dev: true,
+        invariant: ["invariant"],
+        warning: ["warning"]
     };
 
     const configWithAbsPath = await Promise.all(readers.map(async reader => {
@@ -63,6 +72,12 @@ export default async function readConfig(): Promise<Config> {
         if (fileConfig.entrypoint) configObj.entrypoint = await resolveUserFile(fileConfig.entrypoint);
         if (fileConfig.typings) configObj.typings = await resolveUserFile(fileConfig.typings);
         if (fileConfig.dev === false) configObj.dev = false;
+        if (Array.isArray(fileConfig.invariant)) configObj.invariant = fileConfig.invariant;
+        else if (fileConfig.invariant === false) configObj.invariant = [];
+        else if (fileConfig.invariant != null) configObj.invariant = [fileConfig.invariant];
+        if (Array.isArray(fileConfig.warning)) configObj.warning = fileConfig.warning;
+        else if (fileConfig.warning === false) configObj.warning = [];
+        else if (fileConfig.warning != null) configObj.warning = [fileConfig.warning];
     }
 
     if (!configObj.entrypoint) configObj.entrypoint = await detectEntrypoint();

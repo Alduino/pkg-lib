@@ -19,6 +19,9 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
     const isDev: boolean = opts.isDev ?? true;
     const file = opts.file;
 
+    const invariantFunctionNames: string[] = opts.invariant;
+    const warningFunctionNames: string[] = opts.warning;
+
     function logWarning(message: string, fileName: string, node: Node) {
         opts.log?.push(createWarning(message, fileName, node));
     }
@@ -95,9 +98,9 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
 
                 if (!callee.isIdentifier()) return;
 
-                if (callee.node.name === "invariant") {
+                if (invariantFunctionNames.includes(callee.node.name)) {
                     rebuildInvariant(path);
-                } else if (callee.node.name === "warning") {
+                } else if (warningFunctionNames.includes(callee.node.name)) {
                     rebuildWarning(path);
                 }
             }
@@ -105,7 +108,7 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
     };
 });
 
-async function pkglibPlugin(jsx: JSX, isDev: boolean, log?: string[]): Promise<Plugin> {
+async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean, log?: string[]): Promise<Plugin> {
     const entryDir = await getUserDirectory();
 
     return {
@@ -120,7 +123,9 @@ async function pkglibPlugin(jsx: JSX, isDev: boolean, log?: string[]): Promise<P
                         [invariantBabelPlugin, {
                             isDev,
                             log,
-                            file: relative(entryDir, args.path)
+                            file: relative(entryDir, args.path),
+                            invariant: config.invariant,
+                            warning: config.warning
                         }]
                     ]
                 });
@@ -141,7 +146,9 @@ async function pkglibPlugin(jsx: JSX, isDev: boolean, log?: string[]): Promise<P
                         [invariantBabelPlugin, {
                             isDev,
                             log,
-                            file: relative(entryDir, args.path)
+                            file: relative(entryDir, args.path),
+                            invariant: config.invariant,
+                            warning: config.warning
                         }]
                     ].filter(v => v)
                 });
@@ -158,7 +165,9 @@ async function pkglibPlugin(jsx: JSX, isDev: boolean, log?: string[]): Promise<P
                         [invariantBabelPlugin, {
                             isDev,
                             log,
-                            file: relative(entryDir, args.path)
+                            file: relative(entryDir, args.path),
+                            invariant: config.invariant,
+                            warning: config.warning
                         }]
                     ]
                 });
@@ -191,7 +200,7 @@ function getCommonEsbuildOptions(config: Config, plugins?: (Plugin | false)[]): 
 export async function createCommonJsDevBuild(config: Config, jsx: JSX, log?: string[]): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(jsx, true, log)
+            jsx && await pkglibPlugin(config, jsx, true, log)
         ]),
         outfile: config.cjsDevOut,
         format: "cjs",
@@ -207,7 +216,7 @@ export async function createCommonJsDevBuild(config: Config, jsx: JSX, log?: str
 export async function createCommonJsProdBuild(config: Config, jsx: JSX, log?: string[]): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(jsx, false, log)
+            jsx && await pkglibPlugin(config, jsx, false, log)
         ]),
         outfile: config.cjsProdOut,
         format: "cjs",
@@ -224,7 +233,7 @@ export async function createCommonJsProdBuild(config: Config, jsx: JSX, log?: st
 export async function createEsmBuild(config: Config, jsx: JSX, log?: string[]): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(jsx, false, log)
+            jsx && await pkglibPlugin(config, jsx, false, log)
         ]),
         outfile: config.esmOut,
         format: "esm",

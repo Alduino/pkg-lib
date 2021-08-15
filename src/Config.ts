@@ -7,4 +7,6 @@ export default interface Config {
     esmOut: string;
     target: string;
     dev: boolean;
+    invariant: string[];
+    warning: string[];
 }
