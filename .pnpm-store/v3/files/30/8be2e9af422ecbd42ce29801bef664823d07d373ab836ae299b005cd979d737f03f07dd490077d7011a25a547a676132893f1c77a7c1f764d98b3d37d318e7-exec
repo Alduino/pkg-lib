@@ -1,0 +1,32 @@
+{
+    "name": "@types/sade",
+    "version": "1.7.3",
+    "description": "TypeScript definitions for sade",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/sade",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Epimodev",
+            "url": "https://github.com/Epimodev",
+            "githubUsername": "Epimodev"
+        },
+        {
+            "name": "Piotr Błażejewicz",
+            "url": "https://github.com/peterblazejewicz",
+            "githubUsername": "peterblazejewicz"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/sade"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/mri": "*"
+    },
+    "typesPublisherContentHash": "421411ad40aaa235e36afa0a78cf8de6f86c8be019935897950607638045555a",
+    "typeScriptVersion": "3.6"
+}
