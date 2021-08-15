@@ -89,3 +89,6 @@ typings/
 
 # Output files
 dist
+
+# pnpm store
+.pnpm-store/
