@@ -47,7 +47,8 @@ export default async function readConfig(): Promise<Config> {
         cjsDevOut: `dist/${packageInfo.name}.development.js`,
         cjsProdOut: `dist/${packageInfo.name}.production.min.js`,
         esmOut: "dist/index.mjs",
-        target: "node12",
+        platform: "neutral",
+        target: "es6",
         typings: "dist/index.d.ts",
         dev: true,
         invariant: ["invariant"],
@@ -72,6 +73,8 @@ export default async function readConfig(): Promise<Config> {
         if (fileConfig.esmOut) configObj.esmOut = await resolveUserFile(fileConfig.esmOut);
         if (fileConfig.entrypoint) configObj.entrypoint = await resolveUserFile(fileConfig.entrypoint);
         if (fileConfig.typings) configObj.typings = await resolveUserFile(fileConfig.typings);
+        if (fileConfig.platform) configObj.platform = fileConfig.platform;
+        if (fileConfig.target) configObj.target = fileConfig.target;
         if (fileConfig.dev === false) configObj.dev = false;
         if (Array.isArray(fileConfig.invariant)) configObj.invariant = fileConfig.invariant;
         else if (fileConfig.invariant === false) configObj.invariant = [];

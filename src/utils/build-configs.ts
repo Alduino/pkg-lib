@@ -203,7 +203,7 @@ function getCommonEsbuildOptions(config: Config, plugins?: (Plugin | false)[]): 
     return {
         entryPoints: [config.entrypoint],
         bundle: true,
-        platform: "node",
+        platform: config.platform,
         target: config.target,
         external: ["/node_modules/*"],
         plugins: [

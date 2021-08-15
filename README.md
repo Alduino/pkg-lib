@@ -22,7 +22,8 @@ pkg-lib reads its config from a `.pkglibrc` JSON file.
 - `cjsDevOut`: The output file for a development build. Defaults to `dist/[package].development.js`.
 - `cjsProdOut`: The output file for a production build. Defaults to `dist/[package].production.min.js`.
 - `esmOut`: The output file for an ESModule build. Defaults to `dist/index.mjs`.
-- `target`: The JS syntax and std libs to target (e.g. `node12`, `node14`). Defaults to `node10`.
+- `platform`: The target platform, one of `neutral`, `browser` or `node`. Defaults to `neutral`.
+- `target`: The JS syntax and std libs to target (e.g. `node12`, `es2019`). Defaults to `es6`.
 - `dev`: Enable `__DEV__` and `process.env.NODE_ENV`. Defaults to `true`.
 - `invariant`: Disables invariant replacing when false, or changes the function name. Use an array of identifiers for
   multiple invariant functions. Defaults to `invariant`.

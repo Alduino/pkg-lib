@@ -1,3 +1,5 @@
+import {Platform} from "esbuild";
+
 export default interface Config {
     entrypoint: string;
     typings: string;
@@ -5,6 +7,7 @@ export default interface Config {
     cjsDevOut: string;
     cjsProdOut: string;
     esmOut: string;
+    platform: Platform;
     target: string;
     dev: boolean;
     invariant: string[];
