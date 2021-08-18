@@ -8,6 +8,7 @@ import getTemporaryFile from "../utils/getTemporaryFile";
 import {rm, writeFile} from "fs/promises";
 import resolveUserFile, {getUserDirectory} from "../utils/resolveUserFile";
 import execa from "execa";
+import {Extractor, ExtractorConfig} from "@microsoft/api-extractor";
 
 async function buildRef(file: string, enabled: boolean) {
     if (!enabled) return "";
@@ -33,6 +34,7 @@ const typescriptDeclTasks: ListrTask<ListrContext> = {
                 title: "Create temporary entrypoint",
                 async task(ctx) {
                     const {config} = ctx;
+                    const userDir = await getUserDirectory();
 
                     const devRef = await buildRef("dev", config.dev);
 
@@ -43,17 +45,17 @@ const typescriptDeclTasks: ListrTask<ListrContext> = {
 export * from ${JSON.stringify(realEntrypointModulePath)};`;
                     await writeFile(entrypointFileName, entrypointContent);
 
-                    ctx.tsDeclTempFile = entrypointFileName;
+                    ctx.tsDeclTempEntry = entrypointFileName;
+                    ctx.tsDeclTempOut = getTemporaryFile(userDir, "declarations", "tmp");
                 }
             },
             {
                 title: "Build declaration",
                 async task(ctx, task) {
-                    const {config} = ctx;
+                    const {tsDeclTempOut: typingsDir} = ctx;
 
                     const userDir = await getUserDirectory();
                     const tsconfigPath = relative(userDir, await resolveUserFile("tsconfig.json"));
-                    const typingsDir = join(relative(userDir, dirname(config.typings)), "typings");
 
                     const args = [
                         "--declaration", "--emitDeclarationOnly",
@@ -80,8 +82,53 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
                         throw err;
                     }
                 },
-                rollback({tsDeclTempFile}) {
-                    return rm(tsDeclTempFile);
+                async rollback({tsDeclTempEntry, tsDeclTempOut}) {
+                    await Promise.all([
+                        rm(tsDeclTempEntry),
+                        rm(tsDeclTempOut, {recursive: true})
+                    ]);
+                },
+                options: {
+                    persistentOutput: true
+                }
+            },
+            {
+                title: "Bundle declaration",
+                async task({config, opts, tsDeclTempOut}, task) {
+                    const userDir = await getUserDirectory();
+
+                    const extractorConfig = ExtractorConfig.prepare({
+                        configObject: {
+                            mainEntryPointFilePath: relative(userDir, join(tsDeclTempOut, relative(userDir, join(dirname(config.entrypoint), basename(config.entrypoint, extname(config.entrypoint)) + ".d.ts")))),
+                            projectFolder: userDir,
+                            dtsRollup: {
+                                enabled: true,
+                                untrimmedFilePath: config.typings
+                            },
+                            compiler: {
+                                tsconfigFilePath: await resolveUserFile("tsconfig.json")
+                            }
+                        },
+                        packageJsonFullPath: await resolveUserFile("package.json"),
+                        configObjectFullPath: undefined
+                    });
+
+                    const extractorResult = Extractor.invoke(extractorConfig, {
+                        localBuild: process.env.CI === "true",
+                        showVerboseMessages: opts.verbose
+                    });
+
+                    if (!extractorResult.succeeded) {
+                        const message = `Bundling failed with ${extractorResult.errorCount} errors and ${extractorResult.warningCount} warnings`;
+                        task.output = message;
+                        throw new Error(message);
+                    }
+                },
+                async rollback({tsDeclTempEntry, tsDeclTempOut}) {
+                    await Promise.all([
+                        rm(tsDeclTempEntry),
+                        rm(tsDeclTempOut, {recursive: true})
+                    ]);
                 },
                 options: {
                     persistentOutput: true
@@ -89,24 +136,11 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
             },
             {
                 title: "Cleanup",
-                async task({config, tsDeclTempFile}) {
-                    await rm(tsDeclTempFile);
-                    await rm(join(
-                        dirname(config.typings),
-                        "typings",
-                        relative(
-                            await getUserDirectory(),
-                            join(dirname(tsDeclTempFile), basename(tsDeclTempFile, ".ts") + ".d.ts")
-                        )
-                    ));
-                }
-            },
-            {
-                title: "Create entrypoint",
-                async task({config}) {
-                    const entrypointTs = relative(await getUserDirectory(), config.entrypoint);
-                    const entrypointDts = `./typings/${join(dirname(entrypointTs), basename(entrypointTs, ".ts"))}`;
-                    await writeFile(config.typings, `export * from ${JSON.stringify(entrypointDts)};`);
+                async task({config, tsDeclTempEntry, tsDeclTempOut}) {
+                    await Promise.all([
+                        rm(tsDeclTempEntry),
+                        rm(tsDeclTempOut, {recursive: true})
+                    ]);
                 }
             }
         ]);

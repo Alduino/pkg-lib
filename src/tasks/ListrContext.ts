@@ -6,5 +6,6 @@ export default interface ListrContext {
     jsx?: "react-jsx" | "createElement";
     config?: Config;
     watch?: boolean;
-    tsDeclTempFile?: string;
+    tsDeclTempEntry?: string;
+    tsDeclTempOut?: string;
 }
