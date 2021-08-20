@@ -13,11 +13,31 @@ Inspired by [tsdx](https://tsdx.io/), [aqu](https://github.com/ArtiomTr/aqu).
 - Optimises `invariant` and `warning` function calls
 - Generates documentation based on tsdoc
 
+## Getting Started
+
+1. Install it with your favourite package manager:
+
+   ```shell
+   pnpm add -D @alduino/pkg-lib
+   ```
+
+2. Specify what your package’s entrypoints are if you haven’t already, in your package.json:
+
+   ```json5
+   {
+       "main": "dist/index.js",
+       "module": "dist/index.mjs",
+       "typings": "dist/index.d.ts"
+   }
+   ```
+
+3. Run `pkg-lib build`
+
 ## Usage
 
-pkg-lib reads its config from a `.pkglibrc` JSON file.
+pkg-lib reads its config from a `.pkglibrc` JSON file. Here’s the big list of every configuration option.
 
-- `entrypoint`: The file to enter from. Defaults to `src/index` .
+- `entrypoint`: The file to enter from. Defaults a `src/index` that is a `js`, `ts`, `cjs`, `mjs`, `ejs`, or `esm` file.
 - `typings`: Output for Typescript typings. Defaults to `dist/index.d.ts`.
 - `cjsOut`: The output file for library consumer entry. Defaults to `dist/index.js`.
 - `cjsDevOut`: The output file for a development build. Defaults to `dist/[package].development.js`.
