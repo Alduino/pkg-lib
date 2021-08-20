@@ -1,6 +1,14 @@
 # @alduino/pkg-lib
 
+## 0.3.0
+
+### Minor Changes
+
+- 1ef415d: Add optional documentation generation based on TSDoc using API Extractor
+- 73c569c: Bundle all Typescript types into a single file
+
 ## 0.2.0
+
 ### Minor Changes
 
 - 88377c3: Added optimisations for calls to `invariant` and `warning`. If you don't want to use these features, disable them
