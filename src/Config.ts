@@ -13,4 +13,5 @@ export default interface Config {
     invariant: string[];
     warning: string[];
     recommendedExprCheck: boolean;
+    docsDir: string;
 }

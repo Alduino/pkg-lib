@@ -219,7 +219,7 @@ function getCommonEsbuildOptions(config: Config, plugins?: (Plugin | false)[]): 
     };
 }
 
-export async function createCommonJsDevBuild(config: Config, jsx: JSX, log?: string[]): Promise<BuildOptions> {
+export async function createCommonJsDevBuild(config: Config, jsx?: JSX, log?: string[]): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
             jsx && await pkglibPlugin(config, jsx, true, log)

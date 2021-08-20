@@ -1,13 +1,14 @@
 {
   "name": "example",
   "version": "1.0.0",
+  "docs": "docs",
   "scripts": {
     "build": "pkg-lib build"
   },
   "devDependencies": {
+    "@alduino/pkg-lib": "file:..",
     "@types/react": "^17.0.17",
-    "react": "^17.0.2",
-    "@alduino/pkg-lib": "file:.."
+    "react": "^17.0.2"
   },
   "peerDependencies": {
     "react": "^17.0.2"

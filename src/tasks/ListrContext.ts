@@ -8,4 +8,5 @@ export default interface ListrContext {
     watch?: boolean;
     tsDeclTempEntry?: string;
     tsDeclTempOut?: string;
+    tsDocsTempJson?: string;
 }

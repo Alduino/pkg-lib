@@ -9,7 +9,10 @@ specifiers:
   '@babel/types': ^7.15.0
   '@changesets/cli': ^2.16.0
   '@esbuild-plugins/node-resolve': ^0.1.4
+  '@microsoft/api-documenter': ^7.13.39
   '@microsoft/api-extractor': ^7.18.5
+  '@microsoft/api-extractor-model': ^7.13.5
+  '@microsoft/tsdoc': ^0.13.2
   '@types/babel__core': ^7.1.15
   '@types/babel__helper-plugin-utils': ^7.10.0
   '@types/babel__traverse': ^7.14.2
@@ -23,6 +26,7 @@ specifiers:
   listr2: ^3.11.0
   resolve-bin: ^0.4.1
   sade: ^1.7.4
+  tiny-invariant: ^1.1.0
   ts-node: ^10.2.0
   typescript: ^4.3.5
 
@@ -33,7 +37,10 @@ dependencies:
   '@babel/plugin-transform-react-jsx-development': 7.14.5_@babel+core@7.15.0
   '@babel/plugin-transform-typescript': 7.15.0_@babel+core@7.15.0
   '@esbuild-plugins/node-resolve': 0.1.4_esbuild@0.12.20
+  '@microsoft/api-documenter': 7.13.39
   '@microsoft/api-extractor': 7.18.5
+  '@microsoft/api-extractor-model': 7.13.5
+  '@microsoft/tsdoc': 0.13.2
   consola: 2.15.3
   enquirer: 2.3.6
   esbuild: 0.12.20
@@ -41,6 +48,7 @@ dependencies:
   listr2: 3.11.0_enquirer@2.3.6
   resolve-bin: 0.4.1
   sade: 1.7.4
+  tiny-invariant: 1.1.0
 
 devDependencies:
   '@babel/types': 7.15.0
@@ -572,6 +580,19 @@ packages:
       globby: 11.0.4
       read-yaml-file: 1.1.0
     dev: true
+
+  /@microsoft/api-documenter/7.13.39:
+    resolution: {integrity: sha512-it9JJ2bz/ByQuqRw0pfrKBhYssjAqZCrQWK+IB2O4Owdid7zd3guHPK2LZoDaiExltHam4Iu9RgwyLGBAbX0tA==}
+    hasBin: true
+    dependencies:
+      '@microsoft/api-extractor-model': 7.13.5
+      '@microsoft/tsdoc': 0.13.2
+      '@rushstack/node-core-library': 3.40.0
+      '@rushstack/ts-command-line': 4.8.1
+      colors: 1.2.5
+      js-yaml: 3.13.1
+      resolve: 1.17.0
+    dev: false
 
   /@microsoft/api-extractor-model/7.13.5:
     resolution: {integrity: sha512-il6AebNltYo5hEtqXZw4DMvrwBPn6+F58TxwqmsLY+U+sSJNxaYn2jYksArrjErXVPR3gUgRMqD6zsdIkg+WEQ==}
@@ -1155,7 +1176,6 @@ packages:
     resolution: {integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==}
     engines: {node: '>=4'}
     hasBin: true
-    dev: true
 
   /execa/0.7.0:
     resolution: {integrity: sha1-lEvs00zEHuMqY6n68nrVpl/Fl3c=}
@@ -1460,6 +1480,14 @@ packages:
 
   /js-tokens/4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
+
+  /js-yaml/3.13.1:
+    resolution: {integrity: sha512-YfbcO7jXDdyj0DGxYVSlSeQNHbD7XPWvrVWeVUujrQEoZzWJIRrCPoyk6kL6IAjAG2IolMK4T0hNUe0HOUs5Jw==}
+    hasBin: true
+    dependencies:
+      argparse: 1.0.10
+      esprima: 4.0.1
+    dev: false
 
   /js-yaml/3.14.1:
     resolution: {integrity: sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==}
@@ -2199,6 +2227,10 @@ packages:
 
   /timsort/0.3.0:
     resolution: {integrity: sha1-QFQRqOfmM5/mTbmiNN4R3DHgK9Q=}
+    dev: false
+
+  /tiny-invariant/1.1.0:
+    resolution: {integrity: sha512-ytxQvrb1cPc9WBEI/HSeYYoGD0kWnGEOR8RY6KomWLBVhqz0RgTwVO9dLrGz7dC+nN9llyI7OKAgRq8Vq4ZBSw==}
     dev: false
 
   /tmp/0.0.33:

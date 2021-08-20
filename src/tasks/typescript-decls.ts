@@ -5,10 +5,11 @@ import readPackageInformation from "../utils/readPackageInformation";
 import {name} from "../../package.json";
 import {basename, dirname, extname, join, relative} from "path";
 import getTemporaryFile from "../utils/getTemporaryFile";
-import {rm, writeFile} from "fs/promises";
+import {mkdir, rm, writeFile} from "fs/promises";
 import resolveUserFile, {getUserDirectory} from "../utils/resolveUserFile";
 import execa from "execa";
 import {Extractor, ExtractorConfig} from "@microsoft/api-extractor";
+import runDocumentationGenerator from "../utils/runDocumentationGenerator";
 
 async function buildRef(file: string, enabled: boolean) {
     if (!enabled) return "";
@@ -31,7 +32,7 @@ const typescriptDeclTasks: ListrTask<ListrContext> = {
                 }
             },
             {
-                title: "Create temporary entrypoint",
+                title: "Create temporary files",
                 async task(ctx) {
                     const {config} = ctx;
                     const userDir = await getUserDirectory();
@@ -47,6 +48,7 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
 
                     ctx.tsDeclTempEntry = entrypointFileName;
                     ctx.tsDeclTempOut = getTemporaryFile(userDir, "declarations", "tmp");
+                    ctx.tsDocsTempJson = getTemporaryFile(userDir, "docs-json", "tmp");
                 }
             },
             {
@@ -94,7 +96,7 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
             },
             {
                 title: "Bundle declaration",
-                async task({config, opts, tsDeclTempOut}, task) {
+                async task({config, opts, tsDeclTempOut, tsDocsTempJson}, task) {
                     const userDir = await getUserDirectory();
 
                     const extractorConfig = ExtractorConfig.prepare({
@@ -105,6 +107,12 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
                                 enabled: true,
                                 untrimmedFilePath: config.typings
                             },
+                            ...config.docsDir && {
+                                docModel: {
+                                    enabled: true,
+                                    apiJsonFilePath: join(tsDocsTempJson, "<unscopedPackageName>.json")
+                                }
+                            },
                             compiler: {
                                 tsconfigFilePath: await resolveUserFile("tsconfig.json")
                             }
@@ -113,8 +121,10 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
                         configObjectFullPath: undefined
                     });
 
+                    await mkdir(tsDocsTempJson, {recursive: true});
+
                     const extractorResult = Extractor.invoke(extractorConfig, {
-                        localBuild: process.env.CI === "true",
+                        localBuild: process.env.CI !== "true",
                         showVerboseMessages: opts.verbose
                     });
 
@@ -124,9 +134,10 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
                         throw new Error(message);
                     }
                 },
-                async rollback({tsDeclTempEntry, tsDeclTempOut}) {
+                async rollback({tsDeclTempEntry, tsDeclTempOut, tsDocsTempJson}) {
                     await Promise.all([
                         rm(tsDeclTempEntry),
+                        rm(tsDocsTempJson, {recursive: true}),
                         rm(tsDeclTempOut, {recursive: true})
                     ]);
                 },
@@ -135,10 +146,22 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
                 }
             },
             {
+                title: "Generate API documentation",
+                enabled: ({config}) => !!config.docsDir,
+                async task({config, tsDocsTempJson}) {
+                    const customGenerator = await resolveUserFile("pkglib.documenter", ["js", "mjs", "ts"]);
+                    await runDocumentationGenerator(config, tsDocsTempJson, customGenerator);
+                },
+                options: {
+                    persistentOutput: true
+                }
+            },
+            {
                 title: "Cleanup",
-                async task({config, tsDeclTempEntry, tsDeclTempOut}) {
+                async task({tsDeclTempEntry, tsDeclTempOut, tsDocsTempJson}) {
                     await Promise.all([
                         rm(tsDeclTempEntry),
+                        rm(tsDocsTempJson, {recursive: true}),
                         rm(tsDeclTempOut, {recursive: true})
                     ]);
                 }

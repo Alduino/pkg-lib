@@ -6,14 +6,16 @@ import detectEntrypoint from "./detectEntrypoint";
 import readPackageInformation from "./readPackageInformation";
 
 interface FileConfigChanges {
-    invariant: string[] | string | false;
-    warning: string[] | string | false;
+    invariant?: string[] | string | false;
+    warning?: string[] | string | false;
+    docsDir?: string | false;
 }
 
 type FileConfig = Omit<Config, keyof FileConfigChanges> & FileConfigChanges;
 
 interface ConfigReader {
     path: string;
+
     read(source: string): FileConfig;
 }
 
@@ -21,13 +23,14 @@ const readers: ConfigReader[] = [
     {
         path: "package.json",
         read(source) {
-            const {source: entrypoint, main, module, typings} = JSON.parse(source);
+            const {source: entrypoint, main, module, typings, docs} = JSON.parse(source);
 
             return {
                 entrypoint,
                 cjsOut: main,
                 esmOut: module,
-                typings: typings
+                typings: typings,
+                docsDir: docs
             };
         }
     },
@@ -60,7 +63,7 @@ export default async function readConfig(): Promise<Config> {
         const absolutePath = await resolveUserFile(reader.path);
         return [reader, absolutePath, existsSync(absolutePath)] as const;
     }))
-        .then(res => res.filter(([,, exists]) => exists))
+        .then(res => res.filter(([, , exists]) => exists))
         .then(res => res.map(([reader, path]) => [reader, path] as const));
 
     let configObj = {...defaultConfig};
@@ -83,6 +86,7 @@ export default async function readConfig(): Promise<Config> {
         else if (fileConfig.warning === false) configObj.warning = [];
         else if (fileConfig.warning != null) configObj.warning = [fileConfig.warning];
         if (fileConfig.recommendedExprCheck === false) configObj.recommendedExprCheck = false;
+        if (fileConfig.docsDir) configObj.docsDir = await resolveUserFile(fileConfig.docsDir);
     }
 
     if (!configObj.entrypoint) configObj.entrypoint = await detectEntrypoint();
