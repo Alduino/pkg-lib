@@ -11,6 +11,7 @@ Inspired by [tsdx](https://tsdx.io/), [aqu](https://github.com/ArtiomTr/aqu).
 - Builds an ESModules version for better tree-shaking
 - Supports the new JSX transform (and correctly switches between `react-jsx` and `react-jsxdev`)
 - Optimises `invariant` and `warning` function calls
+- Generates documentation based on tsdoc
 
 ## Usage
 
@@ -29,6 +30,7 @@ pkg-lib reads its config from a `.pkglibrc` JSON file.
   multiple invariant functions. Defaults to `invariant`.
 - `warning`: Disables warning replacing when false, or changes the function name. Use an array of identifiers for
   multiple warning functions. Defaults to `warning`.
+- `docsDir`: Output directory for documentation files. They will be put in `{docsDir}/{unscopedPackageName}.md`. Disabled by default.
 
 You can also set some of these in your `package.json`:
 
@@ -36,6 +38,7 @@ You can also set some of these in your `package.json`:
 - `typings` sets itself
 - `main` sets `cjsOut`
 - `module` sets `esmOut`
+- `docs` sets `docsDir`
 
 Run `pkg-lib build` to run the build. You can set a script for this in your `package.json`:
 
@@ -46,6 +49,66 @@ Run `pkg-lib build` to run the build. You can set a script for this in your `pac
   }
 }
 ```
+
+## Documentation generation
+
+pkg-lib can generate documentation for you if you are using Typescript, based on your tsdoc comments. By default it generates a simple markdown file listing each export and their properties, arguments, return types, and the summary and remarks you give them.
+
+Documentation generation is disabled by default, to enable it set `docs` in your `package.json` or `docsDir` in the config to an output directory where the documentation will be generated. If you use the built-in documentation generator, a file will be created in this directory named after your library’s name, without a scope.
+
+### Custom generation
+
+You can override the built-in documentation generator with a custom one by creating a file in your project directory called `pkglib.documenter.js` (it can also be a `.mjs` or `.ts` file). This file is bundled into a temporary file before it is run using the same settings as the normal bundling (as a development build), so you can use features like `invariant`, although Typescript types will not be checked.
+
+The custom documentation generation API is very simple, and has only two concepts: hooks and context. To use these, import their functions from `@alduino/pkg-lib/docgen`. This file has Typescript typings too.
+
+#### Context
+
+Each hook is called as a new child process of `pkg-lib`, so you can’t save values to be used across hooks like you normally would (as a general rule of thumb, don’t use **any** global variables inside this file).
+
+Instead, use the `getContext()` and `setContext()` functions. If you call `setContext(someValue)`, the next time you call `getContext()` (even in another hook) that value will be returned. You can use this to store any serialisable data (functions and symbols are not supported), e.g. to make a table of contents.
+
+##### Notes:
+
+- The default value returned from `getContext()` when you haven’t called `setContext()` yet is `null`.
+- Setting the context to `undefined` will actually set it to `null`.
+
+- Don’t edit the object passed into `setContext` or returned from `getContext` without calling `setContext` with it again. Due to the implementation of these functions, these edits will change the value in the current hook, but it will not persist to others.
+
+#### Hooks
+
+To run your code on a hook, use the `hook(name, callback)` function:
+
+```js
+const {hook} = require("@alduino/pkg-lib/docgen");
+hook("name", arg => {
+    console.log("Called on the `name` hook with some data:", arg);
+});
+```
+
+There is currently three hooks supplied:
+
+##### `doc`
+
+This hook is called for each documentation file (currently only once). You need to write the output file yourself.
+
+For an example implementation, see [here](https://github.com/microsoft/rushstack/blob/master/apps/api-documenter/src/documenters/MarkdownDocumenter.ts) and [here](https://github.com/Alduino/pkg-lib/blob/master/src/utils/generateMarkdownDocs.ts).
+
+It is passed some values as an object in the first parameter:
+
+- `fileName: string`: The name that the file you create should be called, without an extension
+- `outputDirectory: string`: The directory that the file should be put in
+- `source: ApiPackage`: Information about each export. See [@microsoft/api-extractor-model](https://www.npmjs.com/package/@microsoft/api-extractor-model).
+
+##### `start`
+
+This hook is called before all other hooks. It is not passed any information.
+
+##### `end`
+
+This hook is called after all other hooks. It is not passed any information.
+
+If you are going to generate a separate table of contents file, this is the place to do it - you can save information about each file in their `doc` hooks, then read it here and create the file.
 
 ## Optimisations
 
