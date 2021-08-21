@@ -124,7 +124,12 @@ async function taskWrapper<UserContext, Result>(logDetail: string | null, task: 
     } finally {
         if (config?.cleanup) {
             logger.trace("Running cleanup function for `%s`", fqtn);
-            await config.cleanup(userContext);
+
+            try {
+                await config.cleanup(userContext);
+            } catch (err) {
+                abort(taskContext, `an exception occurred in the cleanup function of \`${fqtn}\``, err);
+            }
         }
     }
 }
