@@ -112,7 +112,7 @@ async function taskWrapper<UserContext, Result>(logDetail: string | null, task: 
         return;
     }
 
-    if (loggingEnabled) logger.info("Running %s%s", fqtn, logDetail ? ` ${logDetail}` : "");
+    if (loggingEnabled) logger.info("Running `%s`%s", fqtn, logDetail ? ` ${logDetail}` : "");
 
     try {
         return await task(userContext, thenFunction, abortSignal);
