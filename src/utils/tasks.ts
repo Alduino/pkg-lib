@@ -178,7 +178,7 @@ export function createTaskTypingsHelper<Context>() {
     return <Result>(fn: TaskFunction<Context, Result>) => fn;
 }
 
-interface CreateStaticTaskResult<Context, Result> {
+export interface CreateStaticTaskResult<Context, Result> {
     /**
      * For use with the `and` function, spread this value as its parameters (it passes the name and the `TaskFunction`)
      */
