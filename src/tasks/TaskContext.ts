@@ -9,4 +9,5 @@ export default interface TaskContext {
     tsDeclTempEntry?: string;
     tsDeclTempOut?: string;
     tsDocsTempJson?: string;
+    customDocGenTempCleanup?: () => Promise<void>;
 }
