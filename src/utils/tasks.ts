@@ -71,7 +71,7 @@ function getUserContext<UserContext>(taskContext: TaskContext<UserContext> | Roo
 function getFqtn(taskContext: TaskContext<unknown>, names: string[] = []): string {
     if (taskContext.parent.kind === "child") getFqtn(taskContext.parent, names);
     names.push(taskContext.name);
-    return names.join(" / ");
+    return names.filter(n => n.trim()).join(" / ");
 }
 
 async function isEnabled<Context>(context: Context, config?: TaskConfig<Context>): Promise<boolean> {
@@ -102,16 +102,17 @@ async function taskWrapper<UserContext, Result>(logDetail: string | null, task: 
         return;
     }
 
-    const fqtn = getFqtn(taskContext);
+    const loggingEnabled = !!taskContext.name.trim();
+    const fqtn = loggingEnabled ? getFqtn(taskContext) : "an unnamed task";
 
     const enabled = await isEnabled(userContext, config);
 
     if (!enabled) {
-        logger.debug("Skipping %s as it is disabled", fqtn);
+        if (loggingEnabled) logger.debug("Skipping %s as it is disabled", fqtn);
         return;
     }
 
-    logger.info("Running %s%s", fqtn, logDetail ? ` ${logDetail}` : "");
+    if (loggingEnabled) logger.info("Running %s%s", fqtn, logDetail ? ` ${logDetail}` : "");
 
     try {
         return await task(userContext, thenFunction, abortSignal);
@@ -123,7 +124,7 @@ async function taskWrapper<UserContext, Result>(logDetail: string | null, task: 
         }
     } finally {
         if (config?.cleanup) {
-            logger.trace("Running cleanup function for `%s`", fqtn);
+            if (loggingEnabled) logger.trace("Running cleanup function for `%s`", fqtn);
 
             try {
                 await config.cleanup(userContext);
@@ -214,7 +215,7 @@ export default async function run<Context>(ctx: Context, fn: TaskFunction<Contex
 
     const thenFn = createThenFunction(taskContext);
 
-    const result = await thenFn("Root", fn);
+    const result = await thenFn("", fn);
 
     if (taskContext.abortController.signal.aborted) {
         throw taskContext.abortError ?? new Error("The task tree was aborted");
