@@ -54,6 +54,7 @@ interface RootTaskContext<UserContext> {
     kind: "root";
     context: UserContext;
     abortController: AbortController;
+    abortError?: Error;
 }
 
 interface TaskContext<UserContext> {
@@ -84,10 +85,11 @@ function getAbortSignal<UserContext>(taskContext: TaskContext<UserContext> | Roo
     return getAbortSignal(taskContext.parent);
 }
 
-function abort<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>, cause: string): void {
+function abort<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>, cause: string, causeErr?: Error): void {
     if (taskContext.kind !== "root") return abort(taskContext.parent, cause);
     logger.warn("Aborting task tree, as %s", cause);
     taskContext.abortController.abort();
+    if (causeErr) taskContext.abortError = causeErr;
 }
 
 type PromisifyTuple<Tuple extends unknown[]> = { [Key in keyof Tuple]: Promise<Tuple[Key]> };
@@ -115,12 +117,7 @@ async function taskWrapper<UserContext, Result>(logDetail: string | null, task: 
         return await task(userContext, thenFunction, abortSignal);
     } catch (err) {
         if (!config?.ignoreExceptions) {
-            if (!abortSignal.aborted) {
-                // only abort if we haven't already
-                abort(taskContext, `an exception occurred in \`${fqtn}\`, and the task was not set to ignore exceptions`);
-            }
-
-            throw err;
+            abort(taskContext, `an exception occurred in \`${fqtn}\`, and the task was not set to ignore exceptions`, err);
         } else {
             logger.warn("An exception was thrown, but `%s` has `ignoreExceptions` set to `true`.", fqtn);
         }
@@ -203,12 +200,20 @@ export function createStaticTaskCurry<Context>() {
     };
 }
 
-export default function run<Context>(ctx: Context, fn: TaskFunction<Context, void>): Promise<void> {
-    const thenFn = createThenFunction({
+export default async function run<Context>(ctx: Context, fn: TaskFunction<Context, void>): Promise<void> {
+    const taskContext: RootTaskContext<Context> = {
         kind: "root",
         context: ctx,
         abortController: new AbortController()
-    });
+    };
 
-    return thenFn("Root", fn);
+    const thenFn = createThenFunction(taskContext);
+
+    const result = await thenFn("Root", fn);
+
+    if (taskContext.abortController.signal.aborted) {
+        throw taskContext.abortError ?? new Error("The task tree was aborted");
+    }
+
+    return result;
 }
