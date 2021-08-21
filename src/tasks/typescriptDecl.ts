@@ -115,8 +115,8 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
     async cleanup({tsDeclTempEntry, tsDeclTempOut, tsDocsTempJson}) {
         await Promise.all([
             rm(tsDeclTempEntry, {force: true}),
-            rm(tsDeclTempOut, {recursive: true}),
-            rm(tsDocsTempJson, {recursive: true})
+            rm(tsDeclTempOut, {recursive: true, force: true}),
+            rm(tsDocsTempJson, {recursive: true, force: true})
         ]);
     }
 });
