@@ -86,7 +86,7 @@ function getAbortSignal<UserContext>(taskContext: TaskContext<UserContext> | Roo
 }
 
 function abort<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>, cause: string, causeErr?: Error): void {
-    if (taskContext.kind !== "root") return abort(taskContext.parent, cause);
+    if (taskContext.kind !== "root") return abort(taskContext.parent, cause, causeErr);
     logger.warn("Aborting task tree, as %s", cause);
     taskContext.abortController.abort();
     if (causeErr) taskContext.abortError = causeErr;
