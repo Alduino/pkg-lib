@@ -10,6 +10,7 @@ import { basename } from "path";
 import {Serializable} from "child_process";
 import {ApiModel} from "@microsoft/api-extractor-model";
 import generateMarkdownDocs from "./generateMarkdownDocs";
+import {ThenFunction} from "./tasks";
 
 interface CompileNodeScriptResult {
     path: string;
@@ -49,11 +50,11 @@ async function compileNodeScript(config: Config, source: string): Promise<Compil
     };
 }
 
-export default async function runDocumentationGenerator(config: Config, sourceDirectory: string, customGeneratorPath: string) {
+export default async function runDocumentationGenerator(then: ThenFunction<unknown>, config: Config, sourceDirectory: string, customGeneratorPath: string) {
     const sourceFiles = await readdir(sourceDirectory);
 
     if (customGeneratorPath) {
-        const {path: scriptPath, cleanup} = await compileNodeScript(config, customGeneratorPath);
+        const {path: scriptPath, cleanup} = await then("Compile custom generator", () => compileNodeScript(config, customGeneratorPath));
         let context: Serializable = null;
 
         const note = {
@@ -61,30 +62,32 @@ export default async function runDocumentationGenerator(config: Config, sourceDi
         };
 
         try {
-            context = await runNodeScript(scriptPath, {
+            context = await then("Run start hook", () => runNodeScript(scriptPath, {
                 ...note,
                 DOCGEN_HOOK: "start",
                 DOCGEN_CONTEXT: JSON.stringify(context ?? null)
+            }));
+
+            await then("Run doc hooks", async () => {
+                for (const sourceFile of sourceFiles) {
+                    const fullPath = resolve(sourceDirectory, sourceFile);
+
+                    context = await runNodeScript(scriptPath, {
+                        ...note,
+                        DOCGEN_HOOK: "doc",
+                        DOCGEN_FILE_PATH: fullPath,
+                        DOCGEN_FILE_NAME: basename(sourceFile, ".json"),
+                        DOCGEN_OUTPUT_DIR: config.docsDir,
+                        DOCGEN_CONTEXT: JSON.stringify(context ?? null)
+                    });
+                }
             });
 
-            for (const sourceFile of sourceFiles) {
-                const fullPath = resolve(sourceDirectory, sourceFile);
-
-                context = await runNodeScript(scriptPath, {
-                    ...note,
-                    DOCGEN_HOOK: "doc",
-                    DOCGEN_FILE_PATH: fullPath,
-                    DOCGEN_FILE_NAME: basename(sourceFile, ".json"),
-                    DOCGEN_OUTPUT_DIR: config.docsDir,
-                    DOCGEN_CONTEXT: JSON.stringify(context ?? null)
-                });
-            }
-
-            await runNodeScript(scriptPath, {
+            await then("Run end hook", () => runNodeScript(scriptPath, {
                 ...note,
                 DOCGEN_HOOK: "end",
                 DOCGEN_CONTEXT: JSON.stringify(context ?? null)
-            }, context);
+            }, context));
         } finally {
             await cleanup();
         }

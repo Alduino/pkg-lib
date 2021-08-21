@@ -104,9 +104,9 @@ export * from ${JSON.stringify(realEntrypointModulePath)};`;
         }
     });
 
-    await then("Generate API documentation", async ({config, tsDocsTempJson}) => {
+    await then("Generate API documentation", async ({config, tsDocsTempJson}, then) => {
         const customGenerator = await resolveUserFile("pkglib.documenter", ["js", "mjs", "ts"]);
-        await runDocumentationGenerator(config, tsDocsTempJson, customGenerator);
+        await runDocumentationGenerator(then, config, tsDocsTempJson, customGenerator);
     }, {
         enabled: ({config}) => !!config.docsDir
     })
