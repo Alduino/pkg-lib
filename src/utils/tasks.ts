@@ -108,7 +108,7 @@ async function taskWrapper<UserContext, Result>(logDetail: string | null, task: 
     const enabled = await isEnabled(userContext, config);
 
     if (!enabled) {
-        if (loggingEnabled) logger.debug("Skipping %s as it is disabled", fqtn);
+        if (loggingEnabled) logger.debug("Skipping `%s` as it is disabled", fqtn);
         return;
     }
 
