@@ -39,7 +39,7 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
         invariant(firstArgument, warn("Missing check parameter.", file, path.node));
         invariant(firstArgument.isExpression(), warn("The first argument (the check) must be an expression.", file, firstArgument.node));
         invariant(secondArgument, warn("Missing message parameter.", file, path.node));
-        invariant(secondArgument.isStringLiteral(), warn("The second argument (the message) must be a string literal.", file, secondArgument.node));
+        invariant(secondArgument.isExpression(), warn("The second argument (the message) must be an expression.", file, secondArgument.node));
 
         const devExpr = t.callExpression(callee.node, [falseLiteral, secondArgument.node]);
         const prodExpr = t.callExpression(callee.node, [falseLiteral]);
