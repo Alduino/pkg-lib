@@ -1,12 +1,12 @@
 import readTsconfig from "./readTsconfig";
-import ListrContext from "../tasks/ListrContext";
+import TaskContext from "../tasks/TaskContext";
 import logger from "consola";
 
-export default async function getListrContext(): Promise<Pick<ListrContext, "jsx">> {
+export default async function getListrContext(): Promise<Pick<TaskContext, "jsx">> {
     const tsconfig = await readTsconfig();
 
     const jsxOpt = tsconfig?.compilerOptions?.jsx;
-    const jsxTransform: ListrContext["jsx"] = jsxOpt?.startsWith("react-jsx") ? "react-jsx" : "createElement";
+    const jsxTransform: TaskContext["jsx"] = jsxOpt?.startsWith("react-jsx") ? "react-jsx" : "createElement";
 
     if (!tsconfig.compilerOptions?.isolatedModules) {
         logger.error("compilerOptions.isolatedModules must be `true` in your tsconfig");

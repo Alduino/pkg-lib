@@ -1,23 +1,8 @@
-import {ListrTask} from "listr2";
-import ListrContext from "./ListrContext";
-import bundleCommonjsTasks from "./bundle-commonjs";
-import bundleEsmTasks from "./bundle-esm";
-import typescriptDeclTasks from "./typescript-decls";
+import {createStaticTask} from "./utils";
+import bundleCommonJs from "./bundleCommonJs";
+import bundleEsm from "./bundleEsm";
+import typescriptDecl from "./typescriptDecl";
 
-const bundleTasks: ListrTask<ListrContext> = {
-    title: "Bundle",
-    task(_, task) {
-        return task.newListr([
-            bundleCommonjsTasks,
-            bundleEsmTasks,
-            typescriptDeclTasks
-        ], {
-            rendererOptions: {
-                clearOutput: false,
-                collapse: false
-            }
-        });
-    }
-};
-
-export default bundleTasks;
+export default createStaticTask("Bundle", async (_, then) => {
+    await bundleCommonJs(then).and(...bundleEsm.and).and(...typescriptDecl.and);
+});

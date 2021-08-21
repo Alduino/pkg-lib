@@ -42,10 +42,10 @@
     "enquirer": "^2.3.6",
     "esbuild": "^0.12.20",
     "execa": "^5.1.1",
-    "listr2": "^3.11.0",
     "resolve-bin": "^0.4.1",
     "sade": "^1.7.4",
-    "tiny-invariant": "^1.1.0"
+    "tiny-invariant": "^1.1.0",
+    "tiny-warning": "^1.0.3"
   },
   "devDependencies": {
     "@babel/types": "^7.15.0",

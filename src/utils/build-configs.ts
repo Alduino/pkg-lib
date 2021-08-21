@@ -8,11 +8,12 @@ import {declare} from "@babel/helper-plugin-utils";
 import {getUserDirectory} from "./resolveUserFile";
 import type {NodePath} from "@babel/traverse";
 import type {CallExpression} from "@babel/types";
+import invariant from "tiny-invariant";
 
 export type JSX = "react-jsx" | "createElement";
 
-function createWarning(message: string, fileName: string, {loc: {start}}: Node) {
-    return `Warning: ${message} (at ${fileName}:${start.line + 1}:${start.column + 1})`;
+function babelWarn(fn: string): (message: string, fileName: string, node: Node) => string {
+    return (message, fileName, {loc: {start}}) => `Warning: Invalid \`${fn}\` call. ${message} (at ${fileName}:${start.line + 1}:${start.column + 1})`;
 }
 
 const invariantBabelPlugin = declare(({types: t}, opts) => {
@@ -26,40 +27,19 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
 
     const replaceDevWithProcessEnv: boolean = opts.replaceDevWithProcessEnv;
 
-    function logWarning(message: string, fileName: string, node: Node) {
-        opts.log?.push(createWarning(message, fileName, node));
-    }
-
     const falseLiteral = t.booleanLiteral(false);
 
     function rebuildInvariant(path: NodePath<CallExpression>) {
         const callee = path.get("callee");
         const [firstArgument, secondArgument] = path.get("arguments");
 
-        if (requireExpressionStatements && !t.isExpressionStatement(path.parent)) {
-            logWarning("Invalid `invariant` call. Cannot be used as part of an expression.", file, path.node);
-            return;
-        }
+        const warn = babelWarn("invariant");
 
-        if (!firstArgument) {
-            logWarning("Invalid `invariant` call. Missing check parameter.", file, path.node);
-            return;
-        }
-
-        if (!firstArgument.isExpression()) {
-            logWarning("Invalid `invariant` call. The first argument (the check) must be an expression.", file, firstArgument.node);
-            return;
-        }
-
-        if (!secondArgument) {
-            logWarning("Invalid `invariant` call. Missing message parameter.", file, path.node);
-            return;
-        }
-
-        if (!secondArgument.isStringLiteral()) {
-            logWarning("Invalid `invariant` call. The second argument (the message) must be a string literal.", file, secondArgument.node);
-            return;
-        }
+        invariant(!requireExpressionStatements || t.isExpressionStatement(path.parent), warn("Cannot be used as part of an expression.", file, path.node));
+        invariant(firstArgument, warn("Missing check parameter.", file, path.node));
+        invariant(firstArgument.isExpression(), warn("The first argument (the check) must be an expression.", file, firstArgument.node));
+        invariant(secondArgument, warn("Missing message parameter.", file, path.node));
+        invariant(secondArgument.isStringLiteral(), warn("The second argument (the message) must be a string literal.", file, secondArgument.node));
 
         const devExpr = t.callExpression(callee.node, [falseLiteral, secondArgument.node]);
         const prodExpr = t.callExpression(callee.node, [falseLiteral]);
@@ -74,20 +54,11 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
         const callee = path.get("callee");
         const [firstArgument, ...args] = path.get("arguments");
 
-        if (requireExpressionStatements && !t.isExpressionStatement(path.parent)) {
-            logWarning("Invalid `warning` call. Cannot be used as part of an expression.", file, path.node);
-            return;
-        }
+        const warn = babelWarn("warning");
 
-        if (!firstArgument) {
-            logWarning("Invalid `warning` call. Missing check parameter.", file, path.node);
-            return;
-        }
-
-        if (!firstArgument.isExpression()) {
-            logWarning("Invalid `warning` call. The first argument (the check) must be an expression.", file, firstArgument.node);
-            return;
-        }
+        invariant(!requireExpressionStatements || t.isExpressionStatement(path.parent), warn("Cannot be used as part of an expression.", file, path.node));
+        invariant(firstArgument, warn("Missing check parameter.", file, path.node));
+        invariant(firstArgument.isExpression(), warn("The first argument (the check) must be an expression.", file, firstArgument.node));
 
         const devExpr = t.callExpression(callee.node, [falseLiteral, ...args.map(arg => arg.node)]);
 
@@ -219,10 +190,10 @@ function getCommonEsbuildOptions(config: Config, plugins?: (Plugin | false)[]): 
     };
 }
 
-export async function createCommonJsDevBuild(config: Config, jsx?: JSX, log?: string[]): Promise<BuildOptions> {
+export async function createCommonJsDevBuild(config: Config, jsx?: JSX): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(config, jsx, true, log)
+            jsx && await pkglibPlugin(config, jsx, true)
         ]),
         outfile: config.cjsDevOut,
         format: "cjs",
@@ -235,10 +206,10 @@ export async function createCommonJsDevBuild(config: Config, jsx?: JSX, log?: st
     };
 }
 
-export async function createCommonJsProdBuild(config: Config, jsx: JSX, log?: string[]): Promise<BuildOptions> {
+export async function createCommonJsProdBuild(config: Config, jsx: JSX): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(config, jsx, false, log)
+            jsx && await pkglibPlugin(config, jsx, false)
         ]),
         outfile: config.cjsProdOut,
         format: "cjs",
@@ -252,10 +223,10 @@ export async function createCommonJsProdBuild(config: Config, jsx: JSX, log?: st
     };
 }
 
-export async function createEsmBuild(config: Config, jsx: JSX, log?: string[]): Promise<BuildOptions> {
+export async function createEsmBuild(config: Config, jsx: JSX): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(config, jsx, null, log)
+            jsx && await pkglibPlugin(config, jsx, null)
         ]),
         outfile: config.esmOut,
         format: "esm"
