@@ -5,10 +5,18 @@ import run from "../utils/tasks";
 import prepare from "../tasks/prepare";
 import bundle from "../tasks/bundle";
 import logger from "consola";
+import Config from "../Config";
 
-export interface BuildOpts extends StandardOpts {
+interface BuildOptsChanges extends StandardOpts {
     config?: string;
+    noDev?: boolean;
+    noInvariant?: boolean;
+    noWarning?: boolean;
+    invariant?: string;
+    warning?: string;
 }
+
+export type BuildOpts = Partial<Omit<Config, keyof BuildOptsChanges>> & BuildOptsChanges;
 
 export default async function build(opts: BuildOpts) {
     const context: TaskContext = {
