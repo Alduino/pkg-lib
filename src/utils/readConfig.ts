@@ -4,6 +4,7 @@ import Config from "../Config";
 import resolveUserFile from "./resolveUserFile";
 import detectEntrypoint from "./detectEntrypoint";
 import readPackageInformation from "./readPackageInformation";
+import {BuildOpts} from "../commands/build";
 
 interface FileConfigChanges {
     invariant?: string[] | string | false;
@@ -11,7 +12,7 @@ interface FileConfigChanges {
     docsDir?: string | false;
 }
 
-type FileConfig = Omit<Config, keyof FileConfigChanges> & FileConfigChanges;
+type FileConfig = Partial<Omit<Config, keyof FileConfigChanges>> & FileConfigChanges;
 
 interface ConfigReader {
     path: string;
@@ -19,7 +20,7 @@ interface ConfigReader {
     read(source: string): FileConfig;
 }
 
-const readers: ConfigReader[] = [
+const staticReaders: ConfigReader[] = [
     {
         path: "package.json",
         read(source) {
@@ -33,17 +34,21 @@ const readers: ConfigReader[] = [
                 docsDir: docs
             };
         }
-    },
-    {
-        path: ".pkglibrc",
-        read(source) {
-            return JSON.parse(source);
-        }
     }
 ];
 
-export default async function readConfig(): Promise<Config> {
+export default async function readConfig(opts: BuildOpts): Promise<Config> {
     const packageInfo = await readPackageInformation();
+
+    const readers: ConfigReader[] = [
+        ...staticReaders,
+        {
+            path: opts.config,
+            read(source) {
+                return JSON.parse(source);
+            }
+        }
+    ];
 
     const defaultConfig: Partial<Config> = {
         cjsOut: "dist/index.js",

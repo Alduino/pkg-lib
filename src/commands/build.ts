@@ -7,6 +7,7 @@ import bundle from "../tasks/bundle";
 import logger from "consola";
 
 export interface BuildOpts extends StandardOpts {
+    config?: string;
 }
 
 export default async function build(opts: BuildOpts) {

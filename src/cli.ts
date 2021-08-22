@@ -10,6 +10,7 @@ export default function createCli(args: string[]) {
 
     prog.command("build")
         .describe("Bundles the library a single time.")
+        .option("--config, -c <path>", "Path to the configuration file", ".pkglibrc")
         .action(build);
 
     prog.parse(args);
