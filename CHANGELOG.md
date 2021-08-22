@@ -1,5 +1,11 @@
 # @alduino/pkg-lib
 
+## 0.4.1
+
+### Patch Changes
+
+- 17ca9ae: Add ponyfill for `AbortController` in task system
+
 ## 0.4.0
 
 ### Minor Changes
