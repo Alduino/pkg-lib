@@ -1,4 +1,5 @@
 import logger from "consola";
+import {AbortController, AbortSignal} from "node-abort-controller";
 
 export interface TaskConfig<Context> {
     /**
