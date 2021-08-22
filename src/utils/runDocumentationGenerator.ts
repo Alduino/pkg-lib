@@ -1,18 +1,20 @@
 import {readdir, rm} from "fs/promises";
-import {resolve} from "path";
+import {basename, resolve} from "path";
 import {build} from "esbuild";
 import {node} from "execa";
 import {createCommonJsDevBuild} from "./build-configs";
 import Config from "../Config";
 import getTemporaryFile from "./getTemporaryFile";
 import {getUserDirectory} from "./resolveUserFile";
-import { basename } from "path";
 import {Serializable} from "child_process";
 import {ApiModel} from "@microsoft/api-extractor-model";
 import generateMarkdownDocs from "./generateMarkdownDocs";
+import {ThenFunction} from "./tasks";
+import TaskContext from "../tasks/TaskContext";
 
 interface CompileNodeScriptResult {
     path: string;
+
     cleanup(): Promise<void>;
 }
 
@@ -49,24 +51,26 @@ async function compileNodeScript(config: Config, source: string): Promise<Compil
     };
 }
 
-export default async function runDocumentationGenerator(config: Config, sourceDirectory: string, customGeneratorPath: string) {
+export default async function runDocumentationGenerator(then: ThenFunction<TaskContext>, config: Config, sourceDirectory: string, customGeneratorPath: string) {
     const sourceFiles = await readdir(sourceDirectory);
 
-    if (customGeneratorPath) {
-        const {path: scriptPath, cleanup} = await compileNodeScript(config, customGeneratorPath);
+    await then("Custom generator", async (ctx, then) => {
         let context: Serializable = null;
 
         const note = {
             DOCGEN_NOTE: "These environment variables are internal and may change without a major release",
         };
 
-        try {
-            context = await runNodeScript(scriptPath, {
-                ...note,
-                DOCGEN_HOOK: "start",
-                DOCGEN_CONTEXT: JSON.stringify(context ?? null)
-            });
+        const {path: scriptPath, cleanup} = await then("Compile", () => compileNodeScript(config, customGeneratorPath));
+        ctx.customDocGenTempCleanup = cleanup;
 
+        context = await then("Run start hook", () => runNodeScript(scriptPath, {
+            ...note,
+            DOCGEN_HOOK: "start",
+            DOCGEN_CONTEXT: JSON.stringify(context ?? null)
+        }));
+
+        await then("Run doc hooks", async () => {
             for (const sourceFile of sourceFiles) {
                 const fullPath = resolve(sourceDirectory, sourceFile);
 
@@ -79,16 +83,19 @@ export default async function runDocumentationGenerator(config: Config, sourceDi
                     DOCGEN_CONTEXT: JSON.stringify(context ?? null)
                 });
             }
+        });
 
-            await runNodeScript(scriptPath, {
-                ...note,
-                DOCGEN_HOOK: "end",
-                DOCGEN_CONTEXT: JSON.stringify(context ?? null)
-            }, context);
-        } finally {
-            await cleanup();
-        }
-    } else {
+        await then("Run end hook", () => runNodeScript(scriptPath, {
+            ...note,
+            DOCGEN_HOOK: "end",
+            DOCGEN_CONTEXT: JSON.stringify(context ?? null)
+        }, context));
+    }, {
+        enabled: !!customGeneratorPath,
+        cleanup: ({customDocGenTempCleanup}) => customDocGenTempCleanup()
+    });
+
+    await then("Default generator", async () => {
         for (const sourceFile of sourceFiles) {
             const fullPath = resolve(sourceDirectory, sourceFile);
             const outputFile = resolve(config.docsDir, basename(sourceFile, ".json") + ".md");
@@ -97,5 +104,7 @@ export default async function runDocumentationGenerator(config: Config, sourceDi
             const apiPackage = apiModel.loadPackage(fullPath);
             await generateMarkdownDocs(config, outputFile, apiPackage);
         }
-    }
+    }, {
+        enabled: !customGeneratorPath
+    });
 }
