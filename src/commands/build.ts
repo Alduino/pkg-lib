@@ -4,7 +4,7 @@ import getListrContext from "../utils/getListrContext";
 import run from "../utils/tasks";
 import prepare from "../tasks/prepare";
 import bundle from "../tasks/bundle";
-import logger from "consola";
+import logger, {LogLevel} from "consola";
 import Config from "../Config";
 
 interface BuildOptsChanges extends StandardOpts {
@@ -19,6 +19,8 @@ interface BuildOptsChanges extends StandardOpts {
 export type BuildOpts = Partial<Omit<Config, keyof BuildOptsChanges>> & BuildOptsChanges;
 
 export default async function build(opts: BuildOpts) {
+    logger.level = opts.verbose ? LogLevel.Verbose : LogLevel.Info;
+
     const context: TaskContext = {
         opts,
         ...await getListrContext()
