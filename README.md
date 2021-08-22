@@ -33,7 +33,22 @@ Inspired by [tsdx](https://tsdx.io/), [aqu](https://github.com/ArtiomTr/aqu).
 
 3. Run `pkg-lib build`
 
-## Usage
+## CLI
+
+For now there is only one command:
+
+```shell
+pkg-lib build
+```
+
+- `-c, --config`: The path to the configuration file. Defaults to `.pkglibrc`.
+- `--no-dev`: Disables `__DEV__` replacement
+- `--no-invariant`: Disables `invariant` optimisation
+- `--no-warning`: Disables `warning` optimisation
+
+Other than this, you can use all the configuration values in the CLI too. This will override all other configuration. See `pkg-lib build --help` for more info.
+
+## Configuration
 
 pkg-lib reads its config from a `.pkglibrc` JSON file. Here’s the big list of every configuration option.
 
