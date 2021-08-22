@@ -1,5 +1,16 @@
 # @alduino/pkg-lib
 
+## 0.4.0
+
+### Minor Changes
+
+- 3e910ab: Set configuration from the CLI
+- c7b7e26: Switch to a custom task runner that suits the tool better
+
+### Patch Changes
+
+- e887aa3: Show debug logs when `--verbose` flag is set
+
 ## 0.3.0
 
 ### Minor Changes
