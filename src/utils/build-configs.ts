@@ -198,6 +198,7 @@ export async function createCommonJsDevBuild(config: Config, jsx?: JSX, incremen
         outfile: config.cjsDevOut,
         format: "cjs",
         incremental,
+        metafile: incremental,
         define: {
             ...(config.dev && {
                 __DEV__: "true",
@@ -216,6 +217,7 @@ export async function createCommonJsProdBuild(config: Config, jsx: JSX, incremen
         format: "cjs",
         minify: true,
         incremental,
+        metafile: incremental,
         define: {
             ...(config.dev && {
                 __DEV__: "false",
@@ -232,6 +234,7 @@ export async function createEsmBuild(config: Config, jsx: JSX, incremental?: boo
         ]),
         outfile: config.esmOut,
         format: "esm",
-        incremental
+        incremental,
+        metafile: incremental
     };
 }
