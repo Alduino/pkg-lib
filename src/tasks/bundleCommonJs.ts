@@ -1,15 +1,23 @@
 import {build} from "esbuild";
 import {createCommonJsDevBuild, createCommonJsProdBuild} from "../utils/build-configs";
-import { dirname, relative } from "path";
+import {dirname, relative} from "path";
 import createCommonJsEntrypointSource from "../utils/createCommonJsEntrypointSource";
 import {mkdir, writeFile} from "fs/promises";
 import {createStaticTask} from "./utils";
 
 export default createStaticTask("CommonJS", async (_, then) => {
-    await then("Development module", async ({config, jsx}) => {
-        await build(await createCommonJsDevBuild(config, jsx));
-    }).and("Production module", async ({config, jsx}) => {
-        await build(await createCommonJsProdBuild(config, jsx));
+    await then("Development module", async ctx => {
+        if (ctx.commonJsDevBuildResult) {
+            await ctx.commonJsDevBuildResult.rebuild();
+        } else {
+            ctx.commonJsDevBuildResult = await build(await createCommonJsDevBuild(ctx.config, ctx.jsx, ctx.watch));
+        }
+    }).and("Production module", async ctx => {
+        if (ctx.commonJsProdBuildResult) {
+            await ctx.commonJsProdBuildResult.rebuild();
+        } else {
+            ctx.commonJsProdBuildResult = await build(await createCommonJsProdBuild(ctx.config, ctx.jsx, ctx.watch));
+        }
     }).and("Entrypoint", async ({config}) => {
         const indexDir = dirname(config.cjsOut);
         const relativeProdPath = relative(indexDir, config.cjsProdOut);

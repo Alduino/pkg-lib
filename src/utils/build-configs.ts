@@ -190,13 +190,14 @@ function getCommonEsbuildOptions(config: Config, plugins?: (Plugin | false)[]): 
     };
 }
 
-export async function createCommonJsDevBuild(config: Config, jsx?: JSX): Promise<BuildOptions> {
+export async function createCommonJsDevBuild(config: Config, jsx?: JSX, incremental?: boolean): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
             jsx && await pkglibPlugin(config, jsx, true)
         ]),
         outfile: config.cjsDevOut,
         format: "cjs",
+        incremental,
         define: {
             ...(config.dev && {
                 __DEV__: "true",
@@ -206,7 +207,7 @@ export async function createCommonJsDevBuild(config: Config, jsx?: JSX): Promise
     };
 }
 
-export async function createCommonJsProdBuild(config: Config, jsx: JSX): Promise<BuildOptions> {
+export async function createCommonJsProdBuild(config: Config, jsx: JSX, incremental?: boolean): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
             jsx && await pkglibPlugin(config, jsx, false)
@@ -214,6 +215,7 @@ export async function createCommonJsProdBuild(config: Config, jsx: JSX): Promise
         outfile: config.cjsProdOut,
         format: "cjs",
         minify: true,
+        incremental,
         define: {
             ...(config.dev && {
                 __DEV__: "false",
@@ -223,12 +225,13 @@ export async function createCommonJsProdBuild(config: Config, jsx: JSX): Promise
     };
 }
 
-export async function createEsmBuild(config: Config, jsx: JSX): Promise<BuildOptions> {
+export async function createEsmBuild(config: Config, jsx: JSX, incremental?: boolean): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
             jsx && await pkglibPlugin(config, jsx, null)
         ]),
         outfile: config.esmOut,
-        format: "esm"
+        format: "esm",
+        incremental
     };
 }

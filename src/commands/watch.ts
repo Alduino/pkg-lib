@@ -73,6 +73,7 @@ export default async function watch(opts: WatchOpts) {
 
     const context: TaskContext = {
         opts,
+        watch: true,
         ...await getListrContext()
     };
 

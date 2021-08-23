@@ -1,5 +1,6 @@
 import Config from "../Config";
 import {BuildOpts} from "../commands/build";
+import {BuildResult} from "esbuild";
 
 export default interface TaskContext {
     opts: BuildOpts;
@@ -11,6 +12,9 @@ export default interface TaskContext {
     jsx?: "react-jsx" | "createElement";
     config?: Config;
     watch?: boolean;
+    commonJsDevBuildResult?: BuildResult;
+    commonJsProdBuildResult?: BuildResult;
+    esmBuildResult?: BuildResult;
     tsDeclTempEntry?: string;
     tsDeclTempOut?: string;
     tsDocsTempJson?: string;
