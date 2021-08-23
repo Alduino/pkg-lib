@@ -14,10 +14,12 @@ export interface WatchOpts extends BuildOpts {
 }
 
 class Watcher {
-    private lastFilesToWatch: string[] = this.getFilesToWatch();
+    private lastFilesToWatch = this.getFilesToWatch();
+    private lastCustomDocs = this.context.customDocumenter;
+
     private configWatcher = chokidar([this.context.paths.config, this.context.paths.packageJson]);
     private codeWatcher = chokidar(this.getFilesToWatch());
-    private docsWatcher = this.context.customDocumenter && chokidar(this.context.customDocumenter);
+    private docsWatcher = chokidar([]);
 
     constructor(private readonly context: TaskContext, private readonly then: ThenFunction<TaskContext>) {
     }
@@ -29,9 +31,14 @@ class Watcher {
 
     init() {
         logger.debug("Watching %s files", this.lastFilesToWatch.length);
+
         this.configWatcher.on("change", () => this.triggerAll());
+
         this.codeWatcher.on("change", () => this.triggerCode());
+
+        this.docsWatcher?.on("add", () => this.triggerDocs());
         this.docsWatcher?.on("change", () => this.triggerDocs());
+        this.docsWatcher?.on("unlink", () => this.triggerDocs());
     }
 
     async triggerCode(): Promise<void> {
@@ -47,10 +54,11 @@ class Watcher {
     async triggerAll(): Promise<void> {
         await prepare(this.then);
         await bundle(this.then);
+        this.updateDocsWatcher();
         this.setupManualTrigger();
     }
 
-    updateWatcher() {
+    updateCodeWatcher() {
         const filesToWatch = this.getFilesToWatch();
         const additions = filesToWatch.filter(it => !this.lastFilesToWatch.includes(it));
         const removals = this.lastFilesToWatch.filter(it => !filesToWatch.includes(it));
@@ -85,6 +93,12 @@ class Watcher {
         });
     }
 
+    private updateDocsWatcher() {
+        if (this.lastCustomDocs === this.context.customDocumenter) return;
+        if (this.lastCustomDocs) this.docsWatcher.unwatch(this.lastCustomDocs);
+        if (this.context.customDocumenter) this.docsWatcher.add(this.context.customDocumenter);
+    }
+
     private getFilesToWatch() {
         return [
             ...Watcher.getInputsFromMetafile(this.context.commonJsDevBuildResult?.metafile),
@@ -112,7 +126,7 @@ export default async function watch(opts: WatchOpts) {
         await then("Watch for changes", async (ctx, then) => {
             const watcher = new Watcher(ctx, then);
             watcher.init();
-            watcher.updateWatcher();
+            watcher.updateCodeWatcher();
             await watcher.setupManualTrigger();
         });
     });
