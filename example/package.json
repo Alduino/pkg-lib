@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "docs": "docs",
   "scripts": {
-    "build": "pkg-lib build"
+    "build": "pkg-lib build",
+    "watch": "pkg-lib watch"
   },
   "devDependencies": {
     "@alduino/pkg-lib": "file:..",
