@@ -1,4 +1,3 @@
-import {prompt} from "enquirer";
 import {watch as chokidar} from "chokidar";
 import {BuildOpts} from "./build";
 import TaskContext from "../tasks/TaskContext";
@@ -13,7 +12,12 @@ import {Metafile} from "esbuild";
 export interface WatchOpts extends BuildOpts {
 }
 
+interface ManualTriggerResult {
+    cancel(): void;
+}
+
 class Watcher {
+    private lastManualTrigger?: ManualTriggerResult;
     private lastFilesToWatch = this.getFilesToWatch();
     private lastCustomDocs = this.context.customDocumenter;
 
@@ -42,16 +46,19 @@ class Watcher {
     }
 
     async triggerCode(): Promise<void> {
+        this.lastManualTrigger?.cancel();
         await bundle(this.then);
         this.setupManualTrigger();
     }
 
     async triggerDocs(): Promise<void> {
+        this.lastManualTrigger?.cancel();
         await documentation(this.then);
         this.setupManualTrigger();
     }
 
     async triggerAll(): Promise<void> {
+        this.lastManualTrigger?.cancel();
         await prepare(this.then);
         await bundle(this.then);
         this.updateDocsWatcher();
@@ -68,29 +75,51 @@ class Watcher {
     }
 
     async cleanup() {
+        this.lastManualTrigger?.cancel();
+
+        this.context.commonJsDevBuildResult?.rebuild.dispose();
+        this.context.commonJsProdBuildResult?.rebuild.dispose();
+        this.context.esmBuildResult?.rebuild.dispose();
+
         await Promise.all([
             this.configWatcher.close(),
             this.codeWatcher.close(),
-            this.docsWatcher?.close(),
-            this.context.commonJsDevBuildResult?.rebuild.dispose(),
-            this.context.commonJsProdBuildResult?.rebuild.dispose(),
-            this.context.esmBuildResult?.rebuild.dispose()
+            this.docsWatcher?.close()
         ]);
     }
 
     setupManualTrigger() {
-        return prompt<{action: string}>({
-            type: "select",
-            name: "action",
-            message: "Manual Actions (listening for changes in the background):",
-            choices: ["Manual Trigger", "Exit"]
-        }).then(({action}) => {
-            if (action === "Manual Trigger") {
-                return this.triggerAll();
-            } else if (action === "Exit") {
-                return this.cleanup();
+        // only allow one manual trigger-er at once
+        this.lastManualTrigger?.cancel();
+
+        process.stdin.resume();
+        logger.info("Press `r` to build again, or `q` to quit gracefully.");
+
+        const handler = (chunk: Buffer) => {
+            switch (chunk.toString("ascii")[0]) {
+                case "r":
+                    cancel();
+                    this.triggerAll();
+                    break;
+                case "q":
+                case "\x03":
+                    cancel();
+                    this.cleanup();
+                    console.log("Goodbye!");
+                    break;
             }
-        });
+        };
+
+        process.stdin.on("data", handler);
+
+        const cancel = () => {
+            // erase the log line and stop listening
+            process.stdout.write("\x1b[1A\x1b[K");
+            process.stdin.off("data", handler);
+            process.stdin.pause();
+        }
+
+        return {cancel} as ManualTriggerResult;
     }
 
     private updateDocsWatcher() {
@@ -110,6 +139,7 @@ class Watcher {
 
 export default async function watch(opts: WatchOpts) {
     logger.level = opts.verbose ? LogLevel.Verbose : LogLevel.Info;
+    process.stdin.setRawMode(true);
 
     const context: TaskContext = {
         opts,
@@ -127,7 +157,7 @@ export default async function watch(opts: WatchOpts) {
             const watcher = new Watcher(ctx, then);
             watcher.init();
             watcher.updateCodeWatcher();
-            await watcher.setupManualTrigger();
+            watcher.setupManualTrigger();
         });
     });
 }
