@@ -74,7 +74,7 @@ class Watcher {
         return prompt<{action: string}>({
             type: "select",
             name: "action",
-            message: "What do you want to do?",
+            message: "Manual Actions (listening for changes in the background):",
             choices: ["Manual Trigger", "Exit"]
         }).then(({action}) => {
             if (action === "Manual Trigger") {
