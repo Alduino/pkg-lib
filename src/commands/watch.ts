@@ -3,7 +3,7 @@ import {BuildOpts} from "./build";
 import TaskContext from "../tasks/TaskContext";
 import logger, {LogLevel} from "consola";
 import getListrContext from "../utils/getListrContext";
-import run, {ThenFunction} from "../utils/tasks";
+import run, {ThenFunction, ThenResult} from "../utils/tasks";
 import prepare from "../tasks/prepare";
 import bundle from "../tasks/bundle";
 import typescriptFeatures, {CUSTOM_DOCUMENTER_EXTS, CUSTOM_DOCUMENTER_FILE, documentation} from "../tasks/typescript";
@@ -20,6 +20,7 @@ interface ManualTriggerResult {
 
 class Watcher {
     private lastManualTrigger?: ManualTriggerResult;
+    private lastRun?: ThenResult<TaskContext, void>;
     private readonly watcher = chokidar(this.context.paths.userDir, {
         ignored: /[\/\\]node_modules[\/\\]|[\/\\]\.git[\/\\]/,
         ignoreInitial: true
@@ -100,36 +101,50 @@ class Watcher {
     }
 
     private async triggerCode(): Promise<void> {
-        await this.buildMutex.runExclusive(async () => {
+        this.buildMutex.runExclusive(async () => {
             this.lastManualTrigger?.cancel();
-            await bundle(this.then);
+            this.lastRun = bundle(this.then);
+            await this.lastRun;
             this.setupManualTrigger();
         });
+
+        this.lastRun?.cancel();
     }
 
     private async triggerDocs(): Promise<void> {
-        await this.buildMutex.runExclusive(async () => {
+        this.buildMutex.runExclusive(async () => {
             this.lastManualTrigger?.cancel();
-            await documentation(this.then);
+            this.lastRun = documentation(this.then);
+            await this.lastRun;
             this.setupManualTrigger();
         });
+
+        this.lastRun?.cancel();
     }
 
     private async triggerTypescript(): Promise<void> {
-        await this.buildMutex.runExclusive(async () => {
+        this.buildMutex.runExclusive(async () => {
             this.lastManualTrigger?.cancel();
-            await typescriptFeatures(this.then);
+            this.lastRun = typescriptFeatures(this.then);
+            await this.lastRun;
             this.setupManualTrigger();
         });
+
+        this.lastRun?.cancel();
     }
 
     private async triggerAll(): Promise<void> {
-        await this.buildMutex.runExclusive(async () => {
+        this.buildMutex.runExclusive(async () => {
             this.lastManualTrigger?.cancel();
-            await prepare(this.then);
-            await bundle(this.then);
+            this.lastRun = this.then("Full Rebuild", async (_, then) => {
+                await prepare(then);
+                await bundle(then);
+            });
+            await this.lastRun;
             this.setupManualTrigger();
         });
+
+        this.lastRun?.cancel();
     }
 
     private async cleanup() {
