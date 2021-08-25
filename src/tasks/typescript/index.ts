@@ -1,7 +1,7 @@
 import {createStaticTask} from "../utils";
 import prepare from "./prepare";
 import declaration from "./declaration";
-import documentation from "./documentation";
+import documentation, {CUSTOM_DOCUMENTER_FILE, CUSTOM_DOCUMENTER_EXTS} from "./documentation";
 import {rm} from "fs/promises";
 
 export default createStaticTask("Typescript features", async (_, then) => {
@@ -18,4 +18,4 @@ export default createStaticTask("Typescript features", async (_, then) => {
     }
 });
 
-export {prepare, declaration, documentation};
+export {prepare, declaration, documentation, CUSTOM_DOCUMENTER_FILE, CUSTOM_DOCUMENTER_EXTS};

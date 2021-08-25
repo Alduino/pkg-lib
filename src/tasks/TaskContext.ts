@@ -5,6 +5,7 @@ import {BuildResult} from "esbuild";
 export default interface TaskContext {
     opts: BuildOpts;
     paths?: {
+        userDir: string;
         config: string;
         packageJson: string;
         tsconfig: string;
@@ -20,5 +21,4 @@ export default interface TaskContext {
     tsDocsTempJson?: string;
     customDocGenTempCleanup?: () => Promise<void>;
     customDocumenter?: string;
-    filesToWatch?: string[];
 }

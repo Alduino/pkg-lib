@@ -6,8 +6,9 @@ import getListrContext from "../utils/getListrContext";
 import run, {ThenFunction} from "../utils/tasks";
 import prepare from "../tasks/prepare";
 import bundle from "../tasks/bundle";
-import {documentation} from "../tasks/typescript";
+import typescriptFeatures, {CUSTOM_DOCUMENTER_EXTS, CUSTOM_DOCUMENTER_FILE, documentation} from "../tasks/typescript";
 import {Metafile} from "esbuild";
+import resolveUserFile from "../utils/resolveUserFile";
 
 export interface WatchOpts extends BuildOpts {
 }
@@ -18,14 +19,16 @@ interface ManualTriggerResult {
 
 class Watcher {
     private lastManualTrigger?: ManualTriggerResult;
-    private lastFilesToWatch = this.getFilesToWatch();
-    private lastCustomDocs = this.context.customDocumenter;
-
-    private configWatcher = chokidar([this.context.paths.config, this.context.paths.packageJson]);
-    private codeWatcher = chokidar(this.getFilesToWatch());
-    private docsWatcher = chokidar([]);
+    private readonly watcher = chokidar(this.context.paths.userDir, {
+        ignored: /[\/\\]node_modules[\/\\]|[\/\\]\.git[\/\\]/,
+        ignoreInitial: true
+    });
 
     constructor(private readonly context: TaskContext, private readonly then: ThenFunction<TaskContext>) {
+    }
+
+    private get configurationFiles() {
+        return [this.context.paths.config, this.context.paths.packageJson];
     }
 
     private static getInputsFromMetafile(metafile: Metafile) {
@@ -34,58 +37,9 @@ class Watcher {
     }
 
     init() {
-        logger.debug("Watching %s files", this.lastFilesToWatch.length);
-
-        this.configWatcher.on("change", () => this.triggerAll());
-
-        this.codeWatcher.on("change", () => this.triggerCode());
-
-        this.docsWatcher?.on("add", () => this.triggerDocs());
-        this.docsWatcher?.on("change", () => this.triggerDocs());
-        this.docsWatcher?.on("unlink", () => this.triggerDocs());
-    }
-
-    async triggerCode(): Promise<void> {
-        this.lastManualTrigger?.cancel();
-        await bundle(this.then);
-        this.setupManualTrigger();
-    }
-
-    async triggerDocs(): Promise<void> {
-        this.lastManualTrigger?.cancel();
-        await documentation(this.then);
-        this.setupManualTrigger();
-    }
-
-    async triggerAll(): Promise<void> {
-        this.lastManualTrigger?.cancel();
-        await prepare(this.then);
-        await bundle(this.then);
-        this.updateDocsWatcher();
-        this.setupManualTrigger();
-    }
-
-    updateCodeWatcher() {
-        const filesToWatch = this.getFilesToWatch();
-        const additions = filesToWatch.filter(it => !this.lastFilesToWatch.includes(it));
-        const removals = this.lastFilesToWatch.filter(it => !filesToWatch.includes(it));
-
-        this.codeWatcher.add(additions);
-        this.codeWatcher.unwatch(removals);
-    }
-
-    async cleanup() {
-        this.lastManualTrigger?.cancel();
-
-        this.context.commonJsDevBuildResult?.rebuild.dispose();
-        this.context.commonJsProdBuildResult?.rebuild.dispose();
-        this.context.esmBuildResult?.rebuild.dispose();
-
-        await Promise.all([
-            this.configWatcher.close(),
-            this.codeWatcher.close(),
-            this.docsWatcher?.close()
-        ]);
+        this.watcher.on("change", path => this.handleUpdate(path));
+        this.watcher.on("add", path => this.handleUpdate(path));
+        this.watcher.on("unlink", path => this.handleUpdate(path));
     }
 
     setupManualTrigger() {
@@ -122,18 +76,68 @@ class Watcher {
         return {cancel} as ManualTriggerResult;
     }
 
-    private updateDocsWatcher() {
-        if (this.lastCustomDocs === this.context.customDocumenter) return;
-        if (this.lastCustomDocs) this.docsWatcher.unwatch(this.lastCustomDocs);
-        if (this.context.customDocumenter) this.docsWatcher.add(this.context.customDocumenter);
+    private async handleUpdate(path: string) {
+        if (this.configurationFiles.includes(path)) {
+            return await this.triggerAll();
+        }
+
+        const watchedCodePaths = await this.getWatchedCodePaths();
+        if (watchedCodePaths.includes(path)) {
+            return await this.triggerCode();
+        }
+
+        if (path === this.context.paths.tsconfig) {
+            return await this.triggerTypescript();
+        }
+
+        const documenterFiles = await Promise.all(CUSTOM_DOCUMENTER_EXTS.map(ext => resolveUserFile(`${CUSTOM_DOCUMENTER_FILE}.${ext}`)));
+
+        if (documenterFiles.includes(path)) {
+            return await this.triggerDocs();
+        }
     }
 
-    private getFilesToWatch() {
-        return [
-            ...Watcher.getInputsFromMetafile(this.context.commonJsDevBuildResult?.metafile),
-            ...Watcher.getInputsFromMetafile(this.context.commonJsProdBuildResult?.metafile),
-            ...Watcher.getInputsFromMetafile(this.context.esmBuildResult?.metafile)
-        ];
+    private async triggerCode(): Promise<void> {
+        this.lastManualTrigger?.cancel();
+        await bundle(this.then);
+        this.setupManualTrigger();
+    }
+
+    private async triggerDocs(): Promise<void> {
+        this.lastManualTrigger?.cancel();
+        await documentation(this.then);
+        this.setupManualTrigger();
+    }
+
+    private async triggerTypescript(): Promise<void> {
+        this.lastManualTrigger?.cancel();
+        await typescriptFeatures(this.then);
+        this.setupManualTrigger();
+    }
+
+    private async triggerAll(): Promise<void> {
+        this.lastManualTrigger?.cancel();
+        await prepare(this.then);
+        await bundle(this.then);
+        this.setupManualTrigger();
+    }
+
+    private async cleanup() {
+        this.lastManualTrigger?.cancel();
+
+        this.context.commonJsDevBuildResult?.rebuild.dispose();
+        this.context.commonJsProdBuildResult?.rebuild.dispose();
+        this.context.esmBuildResult?.rebuild.dispose();
+
+        await this.watcher.close();
+    }
+
+    private getWatchedCodePaths() {
+        return Promise.all([
+            Watcher.getInputsFromMetafile(this.context.commonJsDevBuildResult?.metafile).map(key => resolveUserFile(key)),
+            Watcher.getInputsFromMetafile(this.context.commonJsProdBuildResult?.metafile).map(key => resolveUserFile(key)),
+            Watcher.getInputsFromMetafile(this.context.esmBuildResult?.metafile).map(key => resolveUserFile(key))
+        ].map(list => Promise.all(list))).then(res => res.flat());
     }
 }
 
@@ -156,7 +160,6 @@ export default async function watch(opts: WatchOpts) {
         await then("Watch for changes", async (ctx, then) => {
             const watcher = new Watcher(ctx, then);
             watcher.init();
-            watcher.updateCodeWatcher();
             watcher.setupManualTrigger();
         });
     });
