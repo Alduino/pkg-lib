@@ -10,6 +10,7 @@ import typescriptFeatures, {CUSTOM_DOCUMENTER_EXTS, CUSTOM_DOCUMENTER_FILE, docu
 import {Metafile} from "esbuild";
 import resolveUserFile from "../utils/resolveUserFile";
 import {Mutex} from "async-mutex";
+import createResolvablePromise from "../utils/createResolvablePromise";
 
 export interface WatchOpts extends BuildOpts {
 }
@@ -18,9 +19,23 @@ interface ManualTriggerResult {
     cancel(): void;
 }
 
+const enum BuildState {
+    None,
+    Queued,
+    Building
+}
+
+interface QueuedBuilds {
+    prepare?: BuildState;
+    code?: BuildState;
+    docs?: BuildState;
+    typescript?: BuildState;
+}
+
 class Watcher {
     private lastManualTrigger?: ManualTriggerResult;
     private lastRun?: ThenResult<TaskContext, void>;
+    private queuedBuilds: QueuedBuilds = {};
     private readonly watcher = chokidar(this.context.paths.userDir, {
         ignored: /[\/\\]node_modules[\/\\]|[\/\\]\.git[\/\\]/,
         ignoreInitial: true
@@ -56,7 +71,9 @@ class Watcher {
             switch (chunk.toString("ascii")[0]) {
                 case "r":
                     cancel();
-                    this.triggerAll();
+                    this.queuedBuilds.prepare = BuildState.Queued;
+                    this.queuedBuilds.code = BuildState.Queued;
+                    this.trigger();
                     break;
                 case "q":
                 case "\x03":
@@ -81,70 +98,103 @@ class Watcher {
 
     private async handleUpdate(path: string) {
         if (this.configurationFiles.includes(path)) {
-            return await this.triggerAll();
+            this.queuedBuilds.prepare = BuildState.Queued;
+            this.queuedBuilds.code = BuildState.Queued;
+            return await this.trigger();
         }
 
         const watchedCodePaths = await this.getWatchedCodePaths();
         if (watchedCodePaths.includes(path)) {
-            return await this.triggerCode();
+            this.queuedBuilds.code = BuildState.Queued;
+            return await this.trigger();
         }
 
         if (path === this.context.paths.tsconfig) {
-            return await this.triggerTypescript();
+            this.queuedBuilds.typescript = BuildState.Queued;
+            return await this.trigger();
         }
 
         const documenterFiles = await Promise.all(CUSTOM_DOCUMENTER_EXTS.map(ext => resolveUserFile(`${CUSTOM_DOCUMENTER_FILE}.${ext}`)));
 
         if (documenterFiles.includes(path)) {
-            return await this.triggerDocs();
+            this.queuedBuilds.docs = BuildState.Queued;
+            return await this.trigger();
         }
     }
 
-    private async triggerCode(): Promise<void> {
-        this.buildMutex.runExclusive(async () => {
-            this.lastManualTrigger?.cancel();
-            this.lastRun = bundle(this.then);
-            await this.lastRun;
-            this.setupManualTrigger();
-        });
-
+    private async trigger(): Promise<void> {
         this.lastRun?.cancel();
-    }
 
-    private async triggerDocs(): Promise<void> {
-        this.buildMutex.runExclusive(async () => {
+        await this.buildMutex.runExclusive(async () => {
             this.lastManualTrigger?.cancel();
-            this.lastRun = documentation(this.then);
-            await this.lastRun;
-            this.setupManualTrigger();
-        });
 
-        this.lastRun?.cancel();
-    }
+            const {promise, resolve} = createResolvablePromise<void>();
 
-    private async triggerTypescript(): Promise<void> {
-        this.buildMutex.runExclusive(async () => {
-            this.lastManualTrigger?.cancel();
-            this.lastRun = typescriptFeatures(this.then);
-            await this.lastRun;
-            this.setupManualTrigger();
-        });
+            const handleGotInnerTask = async (innerTask: ThenResult<TaskContext, void>) => {
+                this.lastRun = innerTask;
+                await innerTask;
+                this.setupManualTrigger();
+                resolve();
 
-        this.lastRun?.cancel();
-    }
+                if (innerTask.wasCancelled === "exception") {
+                    // assume all builds failed, set them back to the `Queued` state
+                    if (this.queuedBuilds.prepare === BuildState.Building) this.queuedBuilds.prepare = BuildState.Queued;
+                    if (this.queuedBuilds.code === BuildState.Building) this.queuedBuilds.code = BuildState.Queued;
+                    if (this.queuedBuilds.docs === BuildState.Building) this.queuedBuilds.docs = BuildState.Queued;
+                    if (this.queuedBuilds.typescript === BuildState.Building) this.queuedBuilds.typescript = BuildState.Queued;
+                } else {
+                    // any builds that were building and have not been queued again will be in the `Building` state
+                    // so we will set them to `None`.
+                    if (this.queuedBuilds.prepare === BuildState.Building) this.queuedBuilds.prepare = BuildState.None;
+                    if (this.queuedBuilds.code === BuildState.Building) this.queuedBuilds.code = BuildState.None;
+                    if (this.queuedBuilds.docs === BuildState.Building) this.queuedBuilds.docs = BuildState.None;
+                    if (this.queuedBuilds.typescript === BuildState.Building) this.queuedBuilds.typescript = BuildState.None;
+                }
+            }
 
-    private async triggerAll(): Promise<void> {
-        this.buildMutex.runExclusive(async () => {
-            this.lastManualTrigger?.cancel();
-            this.lastRun = this.then("Full Rebuild", async (_, then) => {
-                await prepare(then);
-                await bundle(then);
+            this.then("Rebuild", async ctx => {
+                try {
+                    await run(ctx, async (_, then) => {
+                        const innerThenResult = then("Rebuild", async (_, then) => {
+                            if (this.queuedBuilds.prepare && this.queuedBuilds.code) {
+                                this.queuedBuilds.prepare = BuildState.Building;
+                                this.queuedBuilds.code = BuildState.Building;
+
+                                // subsets of `code` build
+                                this.queuedBuilds.docs = BuildState.Building;
+                                this.queuedBuilds.typescript = BuildState.Building;
+
+                                // rebuild everything
+                                await prepare(then);
+                                await bundle(then);
+                            } else if (this.queuedBuilds.code) {
+                                this.queuedBuilds.code = BuildState.Building;
+
+                                // subsets of `code` build
+                                this.queuedBuilds.docs = BuildState.Building;
+                                this.queuedBuilds.typescript = BuildState.Building;
+
+                                await bundle(then);
+                            } else if (this.queuedBuilds.typescript) {
+                                this.queuedBuilds.typescript = BuildState.Building;
+
+                                await typescriptFeatures(then);
+                            } else if (this.queuedBuilds.docs) {
+                                this.queuedBuilds.docs = BuildState.Building;
+
+                                await documentation(then);
+                            }
+                        });
+
+                        handleGotInnerTask(innerThenResult);
+                    });
+                } catch (err) {
+                    logger.error(err);
+                }
             });
-            await this.lastRun;
-            this.setupManualTrigger();
-        });
 
-        this.lastRun?.cancel();
+            await promise;
+        });
     }
 
     private async cleanup() {

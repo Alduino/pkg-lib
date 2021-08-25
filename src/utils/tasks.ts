@@ -24,6 +24,14 @@ export interface TaskConfig<Context> {
 
 export interface ThenResult<Context, Result, IsFirst extends boolean = true> extends Promise<Result> {
     /**
+     * If `cancel()` was called on this task or a parent task, this value will be `user`.
+     * If an exception was thrown by this task or a parent task (and that task is not set to ignore exceptions), this
+     * value will be `exception`.
+     * Otherwise, it will be `false`.
+     */
+    readonly wasCancelled: false | "exception" | "user";
+
+    /**
      * Runs another task in parallel with the previous one
      * @param name A label to give to the task
      * @param fn The task itself
@@ -128,6 +136,15 @@ function getAbortSignal<UserContext>(taskContext: TaskContext<UserContext> | Roo
     return getGroupedAbortSignal(taskContext);
 }
 
+/**
+ * Returns only the abort signal of the root task context, which is only triggered on an exception.
+ * @param taskContext The task context to get the abort controller from
+ */
+function getRootAbortSignal(taskContext: TaskContext<unknown> | RootTaskContext<unknown>): AbortSignal {
+    if (taskContext.kind === "root") return taskContext.abortController.signal;
+    return getRootAbortSignal(taskContext.parent);
+}
+
 function abort<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>, cause: string, causeErr?: Error): void {
     if (taskContext.kind !== "root") return abort(taskContext.parent, cause, causeErr);
     logger.warn("Aborting task tree, as %s", cause);
@@ -206,6 +223,14 @@ function createThenResult<UserContext, Result extends unknown[], PickFirst exten
     const resultPromise = (pickFirst ? promises[0] : Promise.all(promises)) as ThenResult<UserContext, Result, false>;
     resultPromise.and = andFunction;
     resultPromise.cancel = cancelFunction;
+
+    Object.defineProperty(resultPromise, "wasCancelled", {
+        get() {
+            if (getRootAbortSignal(context).aborted) return "exception";
+            if (getAbortSignal(context).aborted) return "user";
+            return false;
+        }
+    });
 
     return resultPromise as any;
 }
