@@ -9,6 +9,7 @@ import bundle from "../tasks/bundle";
 import typescriptFeatures, {CUSTOM_DOCUMENTER_EXTS, CUSTOM_DOCUMENTER_FILE, documentation} from "../tasks/typescript";
 import {Metafile} from "esbuild";
 import resolveUserFile from "../utils/resolveUserFile";
+import {Mutex} from "async-mutex";
 
 export interface WatchOpts extends BuildOpts {
 }
@@ -23,6 +24,7 @@ class Watcher {
         ignored: /[\/\\]node_modules[\/\\]|[\/\\]\.git[\/\\]/,
         ignoreInitial: true
     });
+    private readonly buildMutex = new Mutex();
 
     constructor(private readonly context: TaskContext, private readonly then: ThenFunction<TaskContext>) {
     }
@@ -98,28 +100,36 @@ class Watcher {
     }
 
     private async triggerCode(): Promise<void> {
-        this.lastManualTrigger?.cancel();
-        await bundle(this.then);
-        this.setupManualTrigger();
+        await this.buildMutex.runExclusive(async () => {
+            this.lastManualTrigger?.cancel();
+            await bundle(this.then);
+            this.setupManualTrigger();
+        });
     }
 
     private async triggerDocs(): Promise<void> {
-        this.lastManualTrigger?.cancel();
-        await documentation(this.then);
-        this.setupManualTrigger();
+        await this.buildMutex.runExclusive(async () => {
+            this.lastManualTrigger?.cancel();
+            await documentation(this.then);
+            this.setupManualTrigger();
+        });
     }
 
     private async triggerTypescript(): Promise<void> {
-        this.lastManualTrigger?.cancel();
-        await typescriptFeatures(this.then);
-        this.setupManualTrigger();
+        await this.buildMutex.runExclusive(async () => {
+            this.lastManualTrigger?.cancel();
+            await typescriptFeatures(this.then);
+            this.setupManualTrigger();
+        });
     }
 
     private async triggerAll(): Promise<void> {
-        this.lastManualTrigger?.cancel();
-        await prepare(this.then);
-        await bundle(this.then);
-        this.setupManualTrigger();
+        await this.buildMutex.runExclusive(async () => {
+            this.lastManualTrigger?.cancel();
+            await prepare(this.then);
+            await bundle(this.then);
+            this.setupManualTrigger();
+        });
     }
 
     private async cleanup() {

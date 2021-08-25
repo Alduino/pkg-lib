@@ -19,6 +19,7 @@ specifiers:
   '@types/node': ^16.6.1
   '@types/resolve-bin': ^0.4.1
   '@types/sade': ^1.7.3
+  async-mutex: ^0.3.1
   chokidar: ^3.5.2
   consola: ^2.15.3
   esbuild: ^0.12.20
@@ -42,6 +43,7 @@ dependencies:
   '@microsoft/api-extractor': 7.18.5
   '@microsoft/api-extractor-model': 7.13.5
   '@microsoft/tsdoc': 0.13.2
+  async-mutex: 0.3.1
   chokidar: 3.5.2
   consola: 2.15.3
   esbuild: 0.12.20
@@ -863,6 +865,12 @@ packages:
     resolution: {integrity: sha1-iYUI2iIm84DfkEcoRWhJwVAaSw0=}
     engines: {node: '>=0.10.0'}
     dev: true
+
+  /async-mutex/0.3.1:
+    resolution: {integrity: sha512-vRfQwcqBnJTLzVQo72Sf7KIUbcSUP5hNchx6udI1U6LuPQpfePgdjJzlCe76yFZ8pxlLjn9lwcl/Ya0TSOv0Tw==}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
 
   /better-path-resolve/1.0.0:
     resolution: {integrity: sha512-pbnl5XzGBdrFU/wT4jqmJVPn2B6UHPBOhzMQkY/SPUPB6QtUXtmBHBIwCbXJol93mOpGMnQyP/+BB19q04xj7g==}
@@ -2244,6 +2252,10 @@ packages:
       typescript: 4.3.5
       yn: 3.1.1
     dev: true
+
+  /tslib/2.3.1:
+    resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
+    dev: false
 
   /tty-table/2.8.13:
     resolution: {integrity: sha512-eVV/+kB6fIIdx+iUImhXrO22gl7f6VmmYh0Zbu6C196fe1elcHXd7U6LcLXu0YoVPc2kNesWiukYcdK8ZmJ6aQ==}
