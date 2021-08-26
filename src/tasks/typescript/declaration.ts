@@ -59,8 +59,9 @@ export const buildDeclaration = createStaticTask("Build declaration", async ({ts
     await cp;
 });
 
-export const bundleDeclaration = createStaticTask("Bundle declaration", async ({config, opts, tsDeclTempOut, tsDocsTempJson}) => {
+export const bundleDeclaration = createStaticTask("Bundle declaration", async ({config, opts, tsDeclTempOut, tsDocsTempJson, watch, cacheDir}) => {
     const userDir = await getUserDirectory();
+    const tsconfig = await readTsconfig(true);
 
     const extractorConfig = ExtractorConfig.prepare({
         configObject: {
@@ -77,7 +78,14 @@ export const bundleDeclaration = createStaticTask("Bundle declaration", async ({
                 }
             },
             compiler: {
-                tsconfigFilePath: await resolveUserFile("tsconfig.json")
+                overrideTsconfig: {
+                    ...tsconfig,
+                    compilerOptions: watch ? {
+                        ...tsconfig.compilerOptions,
+                        incremental: true,
+                        tsBuildInfoFile: resolve(cacheDir, "typescript.json")
+                    } : tsconfig.compilerOptions
+                }
             }
         },
         packageJsonFullPath: await resolveUserFile("package.json"),
