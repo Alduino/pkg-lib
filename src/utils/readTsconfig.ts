@@ -10,6 +10,7 @@ export interface Tsconfig {
     };
 
     include?: string[];
+    exclude?: string[];
     files?: string[];
 }
 

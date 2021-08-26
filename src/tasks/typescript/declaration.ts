@@ -16,8 +16,15 @@ export const buildDeclaration = createStaticTask("Build declaration", async ({ts
     // require tsconfig to have `include` or `files` set
     const tsconfig = await readTsconfig();
     invariant(tsconfig.include || tsconfig.files, "tsconfig must have `include` or `files` keys, to exclude temporary build files");
-    warning(!tsconfig.include?.some(it => it.startsWith("**/")), "`include` in tsconfig should restrict to a subdirectory of the project, otherwise temporary build files will be matched");
-    warning(!tsconfig.files?.some(it => it.startsWith("**/")), "`files` in tsconfig should restrict to a subdirectory of the project, otherwise temporary build files will be matched");
+    invariant(!tsconfig.include?.some(it => it.startsWith("**/")), "`include` in tsconfig should restrict to a subdirectory of the project, otherwise temporary build files will be matched");
+    invariant(!tsconfig.files?.some(it => it.startsWith("**/")), "`files` in tsconfig should restrict to a subdirectory of the project, otherwise temporary build files will be matched");
+
+    const expectedExcludeItems = [
+        "**/node_modules",
+        "**/.*/"
+    ];
+
+    warning(expectedExcludeItems.every(item => tsconfig.exclude.includes(item)), `\`exclude\` in tsconfig should contain ${expectedExcludeItems.map(item => `\`${item}\``).join(", ")} for the best performance. See https://github.com/microsoft/TypeScript/wiki/Performance#misconfigured-include-and-exclude.`);
 
     const args = [
         "--declaration", "--emitDeclarationOnly",
