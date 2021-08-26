@@ -6,7 +6,7 @@ import getListrContext from "../utils/getListrContext";
 import run, {ThenFunction, ThenResult} from "../utils/tasks";
 import prepare from "../tasks/prepare";
 import bundle from "../tasks/bundle";
-import typescriptFeatures, {CUSTOM_DOCUMENTER_EXTS, CUSTOM_DOCUMENTER_FILE, documentation} from "../tasks/typescript";
+import typescriptFeatures, {CUSTOM_DOCUMENTER_EXTS, CUSTOM_DOCUMENTER_FILE} from "../tasks/typescript";
 import {Metafile} from "esbuild";
 import resolveUserFile from "../utils/resolveUserFile";
 import {Mutex} from "async-mutex";
@@ -28,7 +28,6 @@ const enum BuildState {
 interface QueuedBuilds {
     prepare?: BuildState;
     code?: BuildState;
-    docs?: BuildState;
     typescript?: BuildState;
 }
 
@@ -117,7 +116,7 @@ class Watcher {
         const documenterFiles = await Promise.all(CUSTOM_DOCUMENTER_EXTS.map(ext => resolveUserFile(`${CUSTOM_DOCUMENTER_FILE}.${ext}`)));
 
         if (documenterFiles.includes(path)) {
-            this.queuedBuilds.docs = BuildState.Queued;
+            this.queuedBuilds.typescript = BuildState.Queued;
             return await this.trigger();
         }
     }
@@ -140,14 +139,12 @@ class Watcher {
                     // assume all builds failed, set them back to the `Queued` state
                     if (this.queuedBuilds.prepare === BuildState.Building) this.queuedBuilds.prepare = BuildState.Queued;
                     if (this.queuedBuilds.code === BuildState.Building) this.queuedBuilds.code = BuildState.Queued;
-                    if (this.queuedBuilds.docs === BuildState.Building) this.queuedBuilds.docs = BuildState.Queued;
                     if (this.queuedBuilds.typescript === BuildState.Building) this.queuedBuilds.typescript = BuildState.Queued;
                 } else {
                     // any builds that were building and have not been queued again will be in the `Building` state
                     // so we will set them to `None`.
                     if (this.queuedBuilds.prepare === BuildState.Building) this.queuedBuilds.prepare = BuildState.None;
                     if (this.queuedBuilds.code === BuildState.Building) this.queuedBuilds.code = BuildState.None;
-                    if (this.queuedBuilds.docs === BuildState.Building) this.queuedBuilds.docs = BuildState.None;
                     if (this.queuedBuilds.typescript === BuildState.Building) this.queuedBuilds.typescript = BuildState.None;
                 }
             }
@@ -161,7 +158,6 @@ class Watcher {
                                 this.queuedBuilds.code = BuildState.Building;
 
                                 // subsets of `code` build
-                                this.queuedBuilds.docs = BuildState.Building;
                                 this.queuedBuilds.typescript = BuildState.Building;
 
                                 // rebuild everything
@@ -171,7 +167,6 @@ class Watcher {
                                 this.queuedBuilds.code = BuildState.Building;
 
                                 // subsets of `code` build
-                                this.queuedBuilds.docs = BuildState.Building;
                                 this.queuedBuilds.typescript = BuildState.Building;
 
                                 await bundle(then);
@@ -179,10 +174,6 @@ class Watcher {
                                 this.queuedBuilds.typescript = BuildState.Building;
 
                                 await typescriptFeatures(then);
-                            } else if (this.queuedBuilds.docs) {
-                                this.queuedBuilds.docs = BuildState.Building;
-
-                                await documentation(then);
                             }
                         });
 
