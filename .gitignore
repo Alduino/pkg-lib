@@ -92,3 +92,6 @@ dist
 
 # pnpm store
 .pnpm-store/
+
+# pkg-lib build cache
+.pkglib-cache.*.tmp

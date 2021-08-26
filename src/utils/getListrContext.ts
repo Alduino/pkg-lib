@@ -5,6 +5,8 @@ import getTemporaryFile from "./getTemporaryFile";
 import {getUserDirectory} from "./resolveUserFile";
 
 export default async function getListrContext(): Promise<Pick<TaskContext, "jsx" | "cacheDir">> {
+    logger.log("Hint: Add `.pkglib-cache.*.tmp` to your ignore file to ignore pkg-lib's cache");
+
     const tsconfig = await readTsconfig();
     const cacheDir = getTemporaryFile(await getUserDirectory(), ".pkglib-cache", "tmp");
 
