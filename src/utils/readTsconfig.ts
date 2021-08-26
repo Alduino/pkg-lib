@@ -7,7 +7,11 @@ export interface Tsconfig {
     compilerOptions?: {
         jsx?: string;
         isolatedModules?: boolean;
-    }
+    };
+
+    include?: string[];
+    exclude?: string[];
+    files?: string[];
 }
 
 export default async function readTsconfig<Required extends boolean = false>(required?: Required): Promise<Required extends true ? Tsconfig : Tsconfig | null> {

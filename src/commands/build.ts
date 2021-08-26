@@ -6,6 +6,7 @@ import prepare from "../tasks/prepare";
 import bundle from "../tasks/bundle";
 import logger, {LogLevel} from "consola";
 import Config from "../Config";
+import {mkdir, rm} from "fs/promises";
 
 interface BuildOptsChanges extends StandardOpts {
     config?: string;
@@ -26,10 +27,18 @@ export default async function build(opts: BuildOpts) {
         ...await getListrContext()
     };
 
+    await mkdir(context.cacheDir, {recursive: true});
+
     try {
         await run<TaskContext>(context, async (ctx, then) => {
-            await prepare(then);
-            await bundle(then);
+            await then("", async (_, then) => {
+                await prepare(then);
+                await bundle(then);
+            }, {
+                async cleanup(ctx) {
+                    await rm(ctx.cacheDir, {force: true, recursive: true})
+                }
+            });
         });
     } catch (err) {
         logger.error(err);

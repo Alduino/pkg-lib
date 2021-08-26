@@ -1,9 +1,14 @@
 import readTsconfig from "./readTsconfig";
 import TaskContext from "../tasks/TaskContext";
 import logger from "consola";
+import getTemporaryFile from "./getTemporaryFile";
+import {getUserDirectory} from "./resolveUserFile";
 
-export default async function getListrContext(): Promise<Pick<TaskContext, "jsx">> {
+export default async function getListrContext(): Promise<Pick<TaskContext, "jsx" | "cacheDir">> {
+    logger.log("Hint: Add `.pkglib-cache.*.tmp` to your ignore file to ignore pkg-lib's cache");
+
     const tsconfig = await readTsconfig();
+    const cacheDir = getTemporaryFile(await getUserDirectory(), ".pkglib-cache", "tmp");
 
     const jsxOpt = tsconfig?.compilerOptions?.jsx;
     const jsxTransform: TaskContext["jsx"] = jsxOpt?.startsWith("react-jsx") ? "react-jsx" : "createElement";
@@ -18,6 +23,7 @@ export default async function getListrContext(): Promise<Pick<TaskContext, "jsx"
     }
 
     return {
-        jsx: jsxTransform
+        jsx: jsxTransform,
+        cacheDir
     };
 }

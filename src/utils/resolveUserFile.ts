@@ -14,7 +14,7 @@ let userDirectoryCache: string | null = null;
  * await resolveUserFile("setup", ["js", "mjs", "ts"]);
  * @returns Resolved path. If `extensions` is specified and none match, returns `null`.
  */
-export default async function resolveUserFile(path: string, extensions?: string[]) {
+export default async function resolveUserFile(path: string, extensions?: readonly string[]) {
     const userDirectory = userDirectoryCache || (userDirectoryCache = await realpath(process.cwd()));
 
     if (extensions) {

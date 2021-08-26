@@ -22,7 +22,15 @@ export interface TaskConfig<Context> {
     cleanup?(ctx: Context): void | Promise<void>;
 }
 
-export interface ThenResult<Context, Result, IsFirst> extends Promise<Result> {
+export interface ThenResult<Context, Result, IsFirst extends boolean = true> extends Promise<Result> {
+    /**
+     * If `cancel()` was called on this task or a parent task, this value will be `user`.
+     * If an exception was thrown by this task or a parent task (and that task is not set to ignore exceptions), this
+     * value will be `exception`.
+     * Otherwise, it will be `false`.
+     */
+    readonly wasCancelled: false | "exception" | "user";
+
     /**
      * Runs another task in parallel with the previous one
      * @param name A label to give to the task
@@ -31,6 +39,11 @@ export interface ThenResult<Context, Result, IsFirst> extends Promise<Result> {
      * @returns A promise that resolves to an array of each task's output, in the order you run them in
      */
     and<T>(name: string, fn: TaskFunction<Context, T>, config?: TaskConfig<Context>): ThenResult<Context, IsFirst extends true ? [Result, T] : Result extends unknown[] ? [...Result, T] : "ERROR", false>;
+
+    /**
+     * Asks this task and its sub-tasks to cancel themselves. Will work best if they use their AbortSignals properly.
+     */
+    cancel(): void;
 }
 
 export interface ThenFunction<Context> {
@@ -40,7 +53,7 @@ export interface ThenFunction<Context> {
      * @param fn The task function itself
      * @param config Configuration for this task
      */
-    <T>(name: string, fn: TaskFunction<Context, T>, config?: TaskConfig<Context>): ThenResult<Context, T, true>;
+    <T>(name: string, fn: TaskFunction<Context, T>, config?: TaskConfig<Context>): ThenResult<Context, T>;
 }
 
 /**
@@ -62,6 +75,20 @@ interface TaskContext<UserContext> {
     kind: "child";
     name: string;
     parent: TaskContext<UserContext> | RootTaskContext<UserContext>;
+
+    /**
+     * An abort controller that cancels this task and its children
+     */
+    abortController: AbortController;
+}
+
+interface TaskContextGroupAbortControllerCache {
+    groupedAbortController: AbortController;
+}
+
+function hasGroupedAbortController(taskContext: TaskContext<unknown>): taskContext is TaskContext<unknown> & TaskContextGroupAbortControllerCache {
+    if (!taskContext) return false;
+    return (taskContext as unknown as TaskContextGroupAbortControllerCache).groupedAbortController instanceof AbortController;
 }
 
 function getUserContext<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>): UserContext {
@@ -81,9 +108,41 @@ async function isEnabled<Context>(context: Context, config?: TaskConfig<Context>
     return config.enabled !== false;
 }
 
+/**
+ * Creates an AbortController that triggers when either this task or its parent's AbortControllers signal.
+ * Caches the abort controller to prevent event listener leaks.
+ * @param taskContext The task to create the abort controller from
+ */
+function getGroupedAbortSignal(taskContext: TaskContext<unknown>) {
+    if (hasGroupedAbortController(taskContext)) return taskContext.groupedAbortController.signal;
+
+    const parentSignal = getAbortSignal(taskContext.parent);
+    const thisSignal = taskContext.abortController.signal;
+
+    const groupedController = new AbortController();
+    (taskContext as unknown as TaskContextGroupAbortControllerCache).groupedAbortController = groupedController;
+
+    thisSignal.addEventListener("abort", () => groupedController.abort());
+    parentSignal.addEventListener("abort", () => groupedController.abort());
+
+    if (thisSignal.aborted) groupedController.abort();
+    if (parentSignal.aborted) groupedController.abort();
+
+    return groupedController.signal;
+}
+
 function getAbortSignal<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>): AbortSignal {
     if (taskContext.kind === "root") return taskContext.abortController.signal;
-    return getAbortSignal(taskContext.parent);
+    return getGroupedAbortSignal(taskContext);
+}
+
+/**
+ * Returns only the abort signal of the root task context, which is only triggered on an exception.
+ * @param taskContext The task context to get the abort controller from
+ */
+function getRootAbortSignal(taskContext: TaskContext<unknown> | RootTaskContext<unknown>): AbortSignal {
+    if (taskContext.kind === "root") return taskContext.abortController.signal;
+    return getRootAbortSignal(taskContext.parent);
 }
 
 function abort<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>, cause: string, causeErr?: Error): void {
@@ -98,13 +157,18 @@ type PromisifyTuple<Tuple extends unknown[]> = { [Key in keyof Tuple]: Promise<T
 async function taskWrapper<UserContext, Result>(logDetail: string | null, task: TaskFunction<UserContext, Result>, taskContext: TaskContext<UserContext>, userContext: UserContext, thenFunction: ThenFunction<UserContext>, config?: TaskConfig<UserContext>): Promise<Result> {
     const abortSignal = getAbortSignal(taskContext);
 
-    if (abortSignal.aborted) {
-        // Return without logging as the entire tree has been aborted (logging would be too verbose)
-        return;
-    }
-
     const loggingEnabled = !!taskContext.name.trim();
     const fqtn = loggingEnabled ? getFqtn(taskContext) : "an unnamed task";
+
+    if (abortSignal.aborted) {
+        // Return without logging as the entire tree has been aborted (logging would be too verbose)
+        if (taskContext.abortController.signal.aborted) {
+            // if it was actually this specific task that was aborted we can log it
+            logger.warn("Task `%s` was cancelled", fqtn);
+        }
+
+        return;
+    }
 
     const enabled = await isEnabled(userContext, config);
 
@@ -143,7 +207,8 @@ function createThenResult<UserContext, Result extends unknown[], PickFirst exten
         const subContext: TaskContext<UserContext> = {
             kind: "child",
             name,
-            parent: context
+            parent: context,
+            abortController: new AbortController()
         };
 
         const thenFunction = createThenFunction(subContext);
@@ -151,8 +216,21 @@ function createThenResult<UserContext, Result extends unknown[], PickFirst exten
         return createThenResult<UserContext, [...Result, T], false>(context, [...promises, promise], false) as any;
     };
 
+    const cancelFunction: ThenResult<UserContext, Result, false>["cancel"] = () => {
+        context.abortController.abort();
+    };
+
     const resultPromise = (pickFirst ? promises[0] : Promise.all(promises)) as ThenResult<UserContext, Result, false>;
     resultPromise.and = andFunction;
+    resultPromise.cancel = cancelFunction;
+
+    Object.defineProperty(resultPromise, "wasCancelled", {
+        get() {
+            if (getRootAbortSignal(context).aborted) return "exception";
+            if (getAbortSignal(context).aborted) return "user";
+            return false;
+        }
+    });
 
     return resultPromise as any;
 }
@@ -164,7 +242,8 @@ function createThenFunction<UserContext>(context?: TaskContext<UserContext> | Ro
         const subContext: TaskContext<UserContext> = {
             kind: "child",
             name,
-            parent: context
+            parent: context,
+            abortController: new AbortController()
         };
 
         const thenFunction = createThenFunction(subContext);
