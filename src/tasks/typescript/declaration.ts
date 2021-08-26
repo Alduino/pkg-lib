@@ -24,7 +24,9 @@ export const buildDeclaration = createStaticTask("Build declaration", async ({ts
         "**/.*/"
     ];
 
-    warning(expectedExcludeItems.every(item => tsconfig.exclude.includes(item)), `\`exclude\` in tsconfig should contain ${expectedExcludeItems.map(item => `\`${item}\``).join(", ")} for the best performance. See https://github.com/microsoft/TypeScript/wiki/Performance#misconfigured-include-and-exclude.`);
+    if (!expectedExcludeItems.every(item => tsconfig.exclude.includes(item))) {
+        logger.warn(`\`exclude\` in tsconfig should contain ${expectedExcludeItems.map(item => `\`${item}\``).join(", ")} for the best performance. See https://github.com/microsoft/TypeScript/wiki/Performance#misconfigured-include-and-exclude.`);
+    }
 
     const args = [
         "--declaration", "--emitDeclarationOnly",
