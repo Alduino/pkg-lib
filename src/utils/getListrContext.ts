@@ -6,7 +6,7 @@ import {getUserDirectory} from "./resolveUserFile";
 
 export default async function getListrContext(): Promise<Pick<TaskContext, "jsx" | "cacheDir">> {
     const tsconfig = await readTsconfig();
-    const cacheDir = getTemporaryFile(await getUserDirectory(), "cache", "tmp");
+    const cacheDir = getTemporaryFile(await getUserDirectory(), ".pkglib-cache", "tmp");
 
     const jsxOpt = tsconfig?.compilerOptions?.jsx;
     const jsxTransform: TaskContext["jsx"] = jsxOpt?.startsWith("react-jsx") ? "react-jsx" : "createElement";
