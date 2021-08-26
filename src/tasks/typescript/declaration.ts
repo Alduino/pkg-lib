@@ -1,12 +1,12 @@
 import {createStaticTask} from "../utils";
 import resolveUserFile, {getUserDirectory} from "../../utils/resolveUserFile";
-import {basename, dirname, extname, join, relative} from "path";
+import {basename, dirname, extname, join, relative, resolve} from "path";
 import execa from "execa";
 import logger from "consola";
 import {Extractor, ExtractorConfig} from "@microsoft/api-extractor";
 import {mkdir} from "fs/promises";
 
-export const buildDeclaration = createStaticTask("Build declaration", async ({tsDeclTempOut}) => {
+export const buildDeclaration = createStaticTask("Build declaration", async ({tsDeclTempOut, watch, cacheDir, opts}) => {
     const userDir = await getUserDirectory();
     const tsconfigPath = relative(userDir, await resolveUserFile("tsconfig.json"));
 
@@ -17,6 +17,17 @@ export const buildDeclaration = createStaticTask("Build declaration", async ({ts
         "--outDir", tsDeclTempOut
     ];
 
+    if (opts.verbose) {
+        args.push("--extendedDiagnostics");
+    }
+
+    if (watch) {
+        args.push(
+            "--incremental",
+            "--tsBuildInfoFile", resolve(cacheDir, "typescript.json")
+        );
+    }
+
     const cp = execa(
         "tsc",
         args,
@@ -25,6 +36,8 @@ export const buildDeclaration = createStaticTask("Build declaration", async ({ts
             cwd: userDir
         }
     );
+
+    if (opts.verbose) cp.stdout.pipe(process.stdout);
 
     logger.debug("Executing `%s`", cp.spawnargs.join(" "));
     await cp;

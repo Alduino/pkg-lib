@@ -21,4 +21,5 @@ export default interface TaskContext {
     tsDocsTempJson?: string;
     customDocGenTempCleanup?: () => Promise<void>;
     customDocumenter?: string;
+    cacheDir: string;
 }

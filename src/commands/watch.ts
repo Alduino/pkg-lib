@@ -11,6 +11,7 @@ import {Metafile} from "esbuild";
 import resolveUserFile from "../utils/resolveUserFile";
 import {Mutex} from "async-mutex";
 import createResolvablePromise from "../utils/createResolvablePromise";
+import {mkdir, rm} from "fs/promises";
 
 export interface WatchOpts extends BuildOpts {
 }
@@ -35,6 +36,8 @@ class Watcher {
     private lastManualTrigger?: ManualTriggerResult;
     private lastRun?: ThenResult<TaskContext, void>;
     private queuedBuilds: QueuedBuilds = {};
+    private completePromise: Promise<void>;
+    private resolveCompletePromise: () => void;
     private readonly watcher = chokidar(this.context.paths.userDir, {
         ignored: /[\/\\]node_modules[\/\\]|[\/\\]\.git[\/\\]/,
         ignoreInitial: true
@@ -42,6 +45,16 @@ class Watcher {
     private readonly buildMutex = new Mutex();
 
     constructor(private readonly context: TaskContext, private readonly then: ThenFunction<TaskContext>) {
+        const {promise, resolve} = createResolvablePromise<void>();
+        this.completePromise = promise;
+        this.resolveCompletePromise = resolve;
+    }
+
+    /**
+     * Resolves when the watcher has been cleaned up
+     */
+    get complete() {
+        return this.completePromise;
     }
 
     private get configurationFiles() {
@@ -196,6 +209,8 @@ class Watcher {
         this.context.esmBuildResult?.rebuild.dispose();
 
         await this.watcher.close();
+
+        this.resolveCompletePromise();
     }
 
     private getWatchedCodePaths() {
@@ -217,16 +232,30 @@ export default async function watch(opts: WatchOpts) {
         ...await getListrContext()
     };
 
-    await run<TaskContext>(context, async (ctx, then) => {
-        await then("Initial build", async (_, then) => {
-            await prepare(then);
-            await bundle(then);
-        });
+    await mkdir(context.cacheDir, {recursive: true});
 
-        await then("Watch for changes", async (ctx, then) => {
-            const watcher = new Watcher(ctx, then);
-            watcher.init();
-            watcher.setupManualTrigger();
+    try {
+        await run<TaskContext>(context, async (ctx, then) => {
+            await then("", async (_, then) => {
+                await then("Initial build", async (_, then) => {
+                    await prepare(then);
+                    await bundle(then);
+                });
+
+                await then("Watch for changes", async (ctx, then) => {
+                    const watcher = new Watcher(ctx, then);
+                    watcher.init();
+                    watcher.setupManualTrigger();
+                    await watcher.complete;
+                });
+            }, {
+                async cleanup(ctx) {
+                    await rm(ctx.cacheDir, {force: true, recursive: true});
+                }
+            });
         });
-    });
+    } catch (err) {
+        logger.error(err);
+        process.exit(1);
+    }
 }
