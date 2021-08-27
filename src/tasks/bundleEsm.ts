@@ -7,7 +7,9 @@ export default createStaticTask("ESM", async (_, then) => {
         if (ctx.esmBuildResult) {
             await ctx.esmBuildResult.rebuild();
         } else {
-            ctx.esmBuildResult = await build(await createEsmBuild(ctx.config, ctx.jsx, ctx.watch));
+            ctx.esmBuildResult = await build(
+                await createEsmBuild(ctx.config, ctx.jsx, ctx.watch)
+            );
         }
     });
 });

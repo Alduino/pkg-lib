@@ -1,18 +1,13 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "sourceMap": true,
-    "jsx": "react-jsxdev",
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "noImplicitAny": true
-  },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "**/node_modules",
-    "**/.*/"
-  ]
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "sourceMap": true,
+        "jsx": "react-jsxdev",
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "noImplicitAny": true
+    },
+    "include": ["src"],
+    "exclude": ["**/node_modules", "**/.*/"]
 }

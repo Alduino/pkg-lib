@@ -22,7 +22,8 @@ export interface TaskConfig<Context> {
     cleanup?(ctx: Context): void | Promise<void>;
 }
 
-export interface ThenResult<Context, Result, IsFirst extends boolean = true> extends Promise<Result> {
+export interface ThenResult<Context, Result, IsFirst extends boolean = true>
+    extends Promise<Result> {
     /**
      * If `cancel()` was called on this task or a parent task, this value will be `user`.
      * If an exception was thrown by this task or a parent task (and that task is not set to ignore exceptions), this
@@ -38,7 +39,19 @@ export interface ThenResult<Context, Result, IsFirst extends boolean = true> ext
      * @param config Configuration for this task
      * @returns A promise that resolves to an array of each task's output, in the order you run them in
      */
-    and<T>(name: string, fn: TaskFunction<Context, T>, config?: TaskConfig<Context>): ThenResult<Context, IsFirst extends true ? [Result, T] : Result extends unknown[] ? [...Result, T] : "ERROR", false>;
+    and<T>(
+        name: string,
+        fn: TaskFunction<Context, T>,
+        config?: TaskConfig<Context>
+    ): ThenResult<
+        Context,
+        IsFirst extends true
+            ? [Result, T]
+            : Result extends unknown[]
+            ? [...Result, T]
+            : "ERROR",
+        false
+    >;
 
     /**
      * Asks this task and its sub-tasks to cancel themselves. Will work best if they use their AbortSignals properly.
@@ -53,7 +66,11 @@ export interface ThenFunction<Context> {
      * @param fn The task function itself
      * @param config Configuration for this task
      */
-    <T>(name: string, fn: TaskFunction<Context, T>, config?: TaskConfig<Context>): ThenResult<Context, T>;
+    <T>(
+        name: string,
+        fn: TaskFunction<Context, T>,
+        config?: TaskConfig<Context>
+    ): ThenResult<Context, T>;
 }
 
 /**
@@ -62,7 +79,11 @@ export interface ThenFunction<Context> {
  * @param then A function to call sub-tasks. Use `then(...).and` to run multiple tasks in parallel.
  * @param abortSignal If some exception happens and the task tree is aborted, this signal will be triggered
  */
-export type TaskFunction<Context, Result> = (ctx: Context, then: ThenFunction<Context>, abortSignal: AbortSignal) => Promise<Result>;
+export type TaskFunction<Context, Result> = (
+    ctx: Context,
+    then: ThenFunction<Context>,
+    abortSignal: AbortSignal
+) => Promise<Result>;
 
 interface RootTaskContext<UserContext> {
     kind: "root";
@@ -86,23 +107,36 @@ interface TaskContextGroupAbortControllerCache {
     groupedAbortController: AbortController;
 }
 
-function hasGroupedAbortController(taskContext: TaskContext<unknown>): taskContext is TaskContext<unknown> & TaskContextGroupAbortControllerCache {
+function hasGroupedAbortController(
+    taskContext: TaskContext<unknown>
+): taskContext is TaskContext<unknown> & TaskContextGroupAbortControllerCache {
     if (!taskContext) return false;
-    return (taskContext as unknown as TaskContextGroupAbortControllerCache).groupedAbortController instanceof AbortController;
+    return (
+        (taskContext as unknown as TaskContextGroupAbortControllerCache)
+            .groupedAbortController instanceof AbortController
+    );
 }
 
-function getUserContext<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>): UserContext {
+function getUserContext<UserContext>(
+    taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>
+): UserContext {
     if (taskContext.kind === "root") return taskContext.context;
     return getUserContext(taskContext.parent);
 }
 
-function getFqtn(taskContext: TaskContext<unknown>, names: string[] = []): string {
+function getFqtn(
+    taskContext: TaskContext<unknown>,
+    names: string[] = []
+): string {
     if (taskContext.parent.kind === "child") getFqtn(taskContext.parent, names);
     names.push(taskContext.name);
     return names.filter(n => n.trim()).join(" / ");
 }
 
-async function isEnabled<Context>(context: Context, config?: TaskConfig<Context>): Promise<boolean> {
+async function isEnabled<Context>(
+    context: Context,
+    config?: TaskConfig<Context>
+): Promise<boolean> {
     if (!config) return true;
     if (typeof config.enabled === "function") return config.enabled(context);
     return config.enabled !== false;
@@ -114,13 +148,16 @@ async function isEnabled<Context>(context: Context, config?: TaskConfig<Context>
  * @param taskContext The task to create the abort controller from
  */
 function getGroupedAbortSignal(taskContext: TaskContext<unknown>) {
-    if (hasGroupedAbortController(taskContext)) return taskContext.groupedAbortController.signal;
+    if (hasGroupedAbortController(taskContext))
+        return taskContext.groupedAbortController.signal;
 
     const parentSignal = getAbortSignal(taskContext.parent);
     const thisSignal = taskContext.abortController.signal;
 
     const groupedController = new AbortController();
-    (taskContext as unknown as TaskContextGroupAbortControllerCache).groupedAbortController = groupedController;
+    (
+        taskContext as unknown as TaskContextGroupAbortControllerCache
+    ).groupedAbortController = groupedController;
 
     thisSignal.addEventListener("abort", () => groupedController.abort());
     parentSignal.addEventListener("abort", () => groupedController.abort());
@@ -131,7 +168,9 @@ function getGroupedAbortSignal(taskContext: TaskContext<unknown>) {
     return groupedController.signal;
 }
 
-function getAbortSignal<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>): AbortSignal {
+function getAbortSignal<UserContext>(
+    taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>
+): AbortSignal {
     if (taskContext.kind === "root") return taskContext.abortController.signal;
     return getGroupedAbortSignal(taskContext);
 }
@@ -140,21 +179,37 @@ function getAbortSignal<UserContext>(taskContext: TaskContext<UserContext> | Roo
  * Returns only the abort signal of the root task context, which is only triggered on an exception.
  * @param taskContext The task context to get the abort controller from
  */
-function getRootAbortSignal(taskContext: TaskContext<unknown> | RootTaskContext<unknown>): AbortSignal {
+function getRootAbortSignal(
+    taskContext: TaskContext<unknown> | RootTaskContext<unknown>
+): AbortSignal {
     if (taskContext.kind === "root") return taskContext.abortController.signal;
     return getRootAbortSignal(taskContext.parent);
 }
 
-function abort<UserContext>(taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>, cause: string, causeErr?: Error): void {
-    if (taskContext.kind !== "root") return abort(taskContext.parent, cause, causeErr);
+function abort<UserContext>(
+    taskContext: TaskContext<UserContext> | RootTaskContext<UserContext>,
+    cause: string,
+    causeErr?: Error
+): void {
+    if (taskContext.kind !== "root")
+        return abort(taskContext.parent, cause, causeErr);
     logger.warn("Aborting task tree, as %s", cause);
     taskContext.abortController.abort();
     if (causeErr) taskContext.abortError = causeErr;
 }
 
-type PromisifyTuple<Tuple extends unknown[]> = { [Key in keyof Tuple]: Promise<Tuple[Key]> };
+type PromisifyTuple<Tuple extends unknown[]> = {
+    [Key in keyof Tuple]: Promise<Tuple[Key]>;
+};
 
-async function taskWrapper<UserContext, Result>(logDetail: string | null, task: TaskFunction<UserContext, Result>, taskContext: TaskContext<UserContext>, userContext: UserContext, thenFunction: ThenFunction<UserContext>, config?: TaskConfig<UserContext>): Promise<Result> {
+async function taskWrapper<UserContext, Result>(
+    logDetail: string | null,
+    task: TaskFunction<UserContext, Result>,
+    taskContext: TaskContext<UserContext>,
+    userContext: UserContext,
+    thenFunction: ThenFunction<UserContext>,
+    config?: TaskConfig<UserContext>
+): Promise<Result> {
     const abortSignal = getAbortSignal(taskContext);
 
     const loggingEnabled = !!taskContext.name.trim();
@@ -173,37 +228,71 @@ async function taskWrapper<UserContext, Result>(logDetail: string | null, task: 
     const enabled = await isEnabled(userContext, config);
 
     if (!enabled) {
-        if (loggingEnabled) logger.debug("Skipping `%s` as it is disabled", fqtn);
+        if (loggingEnabled)
+            logger.debug("Skipping `%s` as it is disabled", fqtn);
         return;
     }
 
-    if (loggingEnabled) logger.info("Running `%s`%s", fqtn, logDetail ? ` ${logDetail}` : "");
+    if (loggingEnabled)
+        logger.info("Running `%s`%s", fqtn, logDetail ? ` ${logDetail}` : "");
 
     try {
         return await task(userContext, thenFunction, abortSignal);
     } catch (err) {
         if (!config?.ignoreExceptions) {
-            abort(taskContext, `an exception occurred in \`${fqtn}\`, and the task was not set to ignore exceptions`, err);
+            abort(
+                taskContext,
+                `an exception occurred in \`${fqtn}\`, and the task was not set to ignore exceptions`,
+                err
+            );
         } else {
-            logger.warn("An exception was thrown, but `%s` has `ignoreExceptions` set to `true`.", fqtn);
+            logger.warn(
+                "An exception was thrown, but `%s` has `ignoreExceptions` set to `true`.",
+                fqtn
+            );
         }
     } finally {
         if (config?.cleanup) {
-            if (loggingEnabled) logger.trace("Running cleanup function for `%s`", fqtn);
+            if (loggingEnabled)
+                logger.trace("Running cleanup function for `%s`", fqtn);
 
             try {
                 await config.cleanup(userContext);
             } catch (err) {
-                abort(taskContext, `an exception occurred in the cleanup function of \`${fqtn}\``, err);
+                abort(
+                    taskContext,
+                    `an exception occurred in the cleanup function of \`${fqtn}\``,
+                    err
+                );
             }
         }
     }
 }
 
-function createThenResult<UserContext, Result extends unknown[], PickFirst extends boolean>(context: TaskContext<UserContext> | RootTaskContext<UserContext>, promises: PromisifyTuple<Result>, pickFirst: PickFirst): ThenResult<UserContext, PickFirst extends true ? Result extends [infer First, ...unknown[]] ? First : "ERROR" : Result, false> {
+function createThenResult<
+    UserContext,
+    Result extends unknown[],
+    PickFirst extends boolean
+>(
+    context: TaskContext<UserContext> | RootTaskContext<UserContext>,
+    promises: PromisifyTuple<Result>,
+    pickFirst: PickFirst
+): ThenResult<
+    UserContext,
+    PickFirst extends true
+        ? Result extends [infer First, ...unknown[]]
+            ? First
+            : "ERROR"
+        : Result,
+    false
+> {
     const userContext = getUserContext(context);
 
-    const andFunction: ThenResult<UserContext, Result, false>["and"] = <T>(name: string, fn: TaskFunction<UserContext, T>, config?: TaskConfig<UserContext>) => {
+    const andFunction: ThenResult<UserContext, Result, false>["and"] = <T>(
+        name: string,
+        fn: TaskFunction<UserContext, T>,
+        config?: TaskConfig<UserContext>
+    ) => {
         const subContext: TaskContext<UserContext> = {
             kind: "child",
             name,
@@ -212,15 +301,29 @@ function createThenResult<UserContext, Result extends unknown[], PickFirst exten
         };
 
         const thenFunction = createThenFunction(subContext);
-        const promise = taskWrapper("in parallel with the previous task", fn, subContext, userContext, thenFunction, config);
-        return createThenResult<UserContext, [...Result, T], false>(context, [...promises, promise], false) as any;
+        const promise = taskWrapper(
+            "in parallel with the previous task",
+            fn,
+            subContext,
+            userContext,
+            thenFunction,
+            config
+        );
+        return createThenResult<UserContext, [...Result, T], false>(
+            context,
+            [...promises, promise],
+            false
+        ) as never;
     };
 
-    const cancelFunction: ThenResult<UserContext, Result, false>["cancel"] = () => {
-        context.abortController.abort();
-    };
+    const cancelFunction: ThenResult<UserContext, Result, false>["cancel"] =
+        () => {
+            context.abortController.abort();
+        };
 
-    const resultPromise = (pickFirst ? promises[0] : Promise.all(promises)) as ThenResult<UserContext, Result, false>;
+    const resultPromise = (
+        pickFirst ? promises[0] : Promise.all(promises)
+    ) as ThenResult<UserContext, Result, false>;
     resultPromise.and = andFunction;
     resultPromise.cancel = cancelFunction;
 
@@ -232,13 +335,19 @@ function createThenResult<UserContext, Result extends unknown[], PickFirst exten
         }
     });
 
-    return resultPromise as any;
+    return resultPromise as never;
 }
 
-function createThenFunction<UserContext>(context?: TaskContext<UserContext> | RootTaskContext<UserContext>): ThenFunction<UserContext> {
+function createThenFunction<UserContext>(
+    context?: TaskContext<UserContext> | RootTaskContext<UserContext>
+): ThenFunction<UserContext> {
     const userContext = getUserContext(context);
 
-    return <T>(name: string, fn: TaskFunction<UserContext, T>, config?: TaskConfig<UserContext>): ThenResult<UserContext, T, true> => {
+    return <T>(
+        name: string,
+        fn: TaskFunction<UserContext, T>,
+        config?: TaskConfig<UserContext>
+    ): ThenResult<UserContext, T, true> => {
         const subContext: TaskContext<UserContext> = {
             kind: "child",
             name,
@@ -247,8 +356,19 @@ function createThenFunction<UserContext>(context?: TaskContext<UserContext> | Ro
         };
 
         const thenFunction = createThenFunction(subContext);
-        const promise = taskWrapper(null, fn, subContext, userContext, thenFunction, config);
-        return createThenResult<UserContext, [T], true>(context, [promise], true);
+        const promise = taskWrapper(
+            null,
+            fn,
+            subContext,
+            userContext,
+            thenFunction,
+            config
+        );
+        return createThenResult<UserContext, [T], true>(
+            context,
+            [promise],
+            true
+        );
     };
 }
 
@@ -256,14 +376,20 @@ function createThenFunction<UserContext>(context?: TaskContext<UserContext> | Ro
  * Returns a function that provides implicit typings for task functions
  */
 export function createTaskTypingsHelper<Context>() {
-    return <Result>(fn: TaskFunction<Context, Result>) => fn;
+    return <Result>(
+        fn: TaskFunction<Context, Result>
+    ): TaskFunction<Context, Result> => fn;
 }
 
 export interface CreateStaticTaskResult<Context, Result> {
     /**
      * For use with the `and` function, spread this value as its parameters (it passes the name and the `TaskFunction`)
      */
-    and: [string, TaskFunction<Context, Result>, TaskConfig<Context> | undefined];
+    and: [
+        string,
+        TaskFunction<Context, Result>,
+        TaskConfig<Context> | undefined
+    ];
 
     /**
      * Runs the task with the context from the `then`.
@@ -276,7 +402,11 @@ export interface CreateStaticTaskResult<Context, Result> {
  * To run the task, call it with the `then` function from the task you are in.
  */
 export function createStaticTaskCurry<Context>() {
-    return <Result>(name: string, fn: TaskFunction<Context, Result>, config?: TaskConfig<Context>): CreateStaticTaskResult<Context, Result> => {
+    return <Result>(
+        name: string,
+        fn: TaskFunction<Context, Result>,
+        config?: TaskConfig<Context>
+    ): CreateStaticTaskResult<Context, Result> => {
         const res = ((then: ThenFunction<Context>) => {
             return then(name, fn, config);
         }) as CreateStaticTaskResult<Context, Result>;
@@ -286,7 +416,10 @@ export function createStaticTaskCurry<Context>() {
     };
 }
 
-export default async function run<Context>(ctx: Context, fn: TaskFunction<Context, void>): Promise<void> {
+export default async function run<Context>(
+    ctx: Context,
+    fn: TaskFunction<Context, void>
+): Promise<void> {
     const taskContext: RootTaskContext<Context> = {
         kind: "root",
         context: ctx,

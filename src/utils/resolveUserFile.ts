@@ -1,6 +1,6 @@
-import {resolve} from "path";
-import {realpath} from "fs/promises";
 import {existsSync} from "fs";
+import {realpath} from "fs/promises";
+import {resolve} from "path";
 
 let userDirectoryCache: string | null = null;
 
@@ -14,8 +14,13 @@ let userDirectoryCache: string | null = null;
  * await resolveUserFile("setup", ["js", "mjs", "ts"]);
  * @returns Resolved path. If `extensions` is specified and none match, returns `null`.
  */
-export default async function resolveUserFile(path: string, extensions?: readonly string[]) {
-    const userDirectory = userDirectoryCache || (userDirectoryCache = await realpath(process.cwd()));
+export default async function resolveUserFile(
+    path: string,
+    extensions?: readonly string[]
+): Promise<string> {
+    const userDirectory =
+        userDirectoryCache ||
+        (userDirectoryCache = await realpath(process.cwd()));
 
     if (extensions) {
         return extensions
@@ -26,6 +31,9 @@ export default async function resolveUserFile(path: string, extensions?: readonl
     return resolve(userDirectory, path);
 }
 
-export async function getUserDirectory() {
-    return userDirectoryCache || (userDirectoryCache = await realpath(process.cwd()));
+export async function getUserDirectory(): Promise<string> {
+    return (
+        userDirectoryCache ||
+        (userDirectoryCache = await realpath(process.cwd()))
+    );
 }

@@ -1,20 +1,22 @@
-import {watch as chokidar} from "chokidar";
-import {BuildOpts} from "./build";
-import TaskContext from "../tasks/TaskContext";
-import logger, {LogLevel} from "consola";
-import getListrContext from "../utils/getListrContext";
-import run, {ThenFunction, ThenResult} from "../utils/tasks";
-import prepare from "../tasks/prepare";
-import bundle from "../tasks/bundle";
-import typescriptFeatures, {CUSTOM_DOCUMENTER_EXTS, CUSTOM_DOCUMENTER_FILE} from "../tasks/typescript";
-import {Metafile} from "esbuild";
-import resolveUserFile from "../utils/resolveUserFile";
-import {Mutex} from "async-mutex";
-import createResolvablePromise from "../utils/createResolvablePromise";
 import {mkdir, rm} from "fs/promises";
+import {Mutex} from "async-mutex";
+import {watch as chokidar} from "chokidar";
+import logger, {LogLevel} from "consola";
+import {Metafile} from "esbuild";
+import TaskContext from "../tasks/TaskContext";
+import bundle from "../tasks/bundle";
+import prepare from "../tasks/prepare";
+import typescriptFeatures, {
+    CUSTOM_DOCUMENTER_EXTS,
+    CUSTOM_DOCUMENTER_FILE
+} from "../tasks/typescript";
+import createResolvablePromise from "../utils/createResolvablePromise";
+import getListrContext from "../utils/getListrContext";
+import resolveUserFile from "../utils/resolveUserFile";
+import run, {ThenFunction, ThenResult} from "../utils/tasks";
+import {BuildOpts} from "./build";
 
-export interface WatchOpts extends BuildOpts {
-}
+export type WatchOpts = BuildOpts;
 
 interface ManualTriggerResult {
     cancel(): void;
@@ -39,12 +41,15 @@ class Watcher {
     private completePromise: Promise<void>;
     private resolveCompletePromise: () => void;
     private readonly watcher = chokidar(this.context.paths.userDir, {
-        ignored: /[\/\\]node_modules[\/\\]|[\/\\]\.git[\/\\]/,
+        ignored: /[/\\]node_modules[/\\]|[/\\]\.git[/\\]/,
         ignoreInitial: true
     });
     private readonly buildMutex = new Mutex();
 
-    constructor(private readonly context: TaskContext, private readonly then: ThenFunction<TaskContext>) {
+    constructor(
+        private readonly context: TaskContext,
+        private readonly then: ThenFunction<TaskContext>
+    ) {
         const {promise, resolve} = createResolvablePromise<void>();
         this.completePromise = promise;
         this.resolveCompletePromise = resolve;
@@ -103,7 +108,7 @@ class Watcher {
             process.stdout.write("\x1b[1A\x1b[K");
             process.stdin.off("data", handler);
             process.stdin.pause();
-        }
+        };
 
         return {cancel} as ManualTriggerResult;
     }
@@ -126,7 +131,11 @@ class Watcher {
             return await this.trigger();
         }
 
-        const documenterFiles = await Promise.all(CUSTOM_DOCUMENTER_EXTS.map(ext => resolveUserFile(`${CUSTOM_DOCUMENTER_FILE}.${ext}`)));
+        const documenterFiles = await Promise.all(
+            CUSTOM_DOCUMENTER_EXTS.map(ext =>
+                resolveUserFile(`${CUSTOM_DOCUMENTER_FILE}.${ext}`)
+            )
+        );
 
         if (documenterFiles.includes(path)) {
             this.queuedBuilds.typescript = BuildState.Queued;
@@ -142,7 +151,9 @@ class Watcher {
 
             const {promise, resolve} = createResolvablePromise<void>();
 
-            const handleGotInnerTask = async (innerTask: ThenResult<TaskContext, void>) => {
+            const handleGotInnerTask = async (
+                innerTask: ThenResult<TaskContext, void>
+            ) => {
                 this.lastRun = innerTask;
                 await innerTask;
                 this.setupManualTrigger();
@@ -150,45 +161,63 @@ class Watcher {
 
                 if (innerTask.wasCancelled === "exception") {
                     // assume all builds failed, set them back to the `Queued` state
-                    if (this.queuedBuilds.prepare === BuildState.Building) this.queuedBuilds.prepare = BuildState.Queued;
-                    if (this.queuedBuilds.code === BuildState.Building) this.queuedBuilds.code = BuildState.Queued;
-                    if (this.queuedBuilds.typescript === BuildState.Building) this.queuedBuilds.typescript = BuildState.Queued;
+                    if (this.queuedBuilds.prepare === BuildState.Building)
+                        this.queuedBuilds.prepare = BuildState.Queued;
+                    if (this.queuedBuilds.code === BuildState.Building)
+                        this.queuedBuilds.code = BuildState.Queued;
+                    if (this.queuedBuilds.typescript === BuildState.Building)
+                        this.queuedBuilds.typescript = BuildState.Queued;
                 } else {
                     // any builds that were building and have not been queued again will be in the `Building` state
                     // so we will set them to `None`.
-                    if (this.queuedBuilds.prepare === BuildState.Building) this.queuedBuilds.prepare = BuildState.None;
-                    if (this.queuedBuilds.code === BuildState.Building) this.queuedBuilds.code = BuildState.None;
-                    if (this.queuedBuilds.typescript === BuildState.Building) this.queuedBuilds.typescript = BuildState.None;
+                    if (this.queuedBuilds.prepare === BuildState.Building)
+                        this.queuedBuilds.prepare = BuildState.None;
+                    if (this.queuedBuilds.code === BuildState.Building)
+                        this.queuedBuilds.code = BuildState.None;
+                    if (this.queuedBuilds.typescript === BuildState.Building)
+                        this.queuedBuilds.typescript = BuildState.None;
                 }
-            }
+            };
 
             this.then("Rebuild", async ctx => {
                 try {
                     await run(ctx, async (_, then) => {
-                        const innerThenResult = then("Rebuild", async (_, then) => {
-                            if (this.queuedBuilds.prepare && this.queuedBuilds.code) {
-                                this.queuedBuilds.prepare = BuildState.Building;
-                                this.queuedBuilds.code = BuildState.Building;
+                        const innerThenResult = then(
+                            "Rebuild",
+                            async (_, then) => {
+                                if (
+                                    this.queuedBuilds.prepare &&
+                                    this.queuedBuilds.code
+                                ) {
+                                    this.queuedBuilds.prepare =
+                                        BuildState.Building;
+                                    this.queuedBuilds.code =
+                                        BuildState.Building;
 
-                                // subsets of `code` build
-                                this.queuedBuilds.typescript = BuildState.Building;
+                                    // subsets of `code` build
+                                    this.queuedBuilds.typescript =
+                                        BuildState.Building;
 
-                                // rebuild everything
-                                await prepare(then);
-                                await bundle(then);
-                            } else if (this.queuedBuilds.code) {
-                                this.queuedBuilds.code = BuildState.Building;
+                                    // rebuild everything
+                                    await prepare(then);
+                                    await bundle(then);
+                                } else if (this.queuedBuilds.code) {
+                                    this.queuedBuilds.code =
+                                        BuildState.Building;
 
-                                // subsets of `code` build
-                                this.queuedBuilds.typescript = BuildState.Building;
+                                    // subsets of `code` build
+                                    this.queuedBuilds.typescript =
+                                        BuildState.Building;
 
-                                await bundle(then);
-                            } else if (this.queuedBuilds.typescript) {
-                                this.queuedBuilds.typescript = BuildState.Building;
+                                    await bundle(then);
+                                } else if (this.queuedBuilds.typescript) {
+                                    this.queuedBuilds.typescript =
+                                        BuildState.Building;
 
-                                await typescriptFeatures(then);
+                                    await typescriptFeatures(then);
+                                }
                             }
-                        });
+                        );
 
                         handleGotInnerTask(innerThenResult);
                     });
@@ -214,45 +243,57 @@ class Watcher {
     }
 
     private getWatchedCodePaths() {
-        return Promise.all([
-            Watcher.getInputsFromMetafile(this.context.commonJsDevBuildResult?.metafile).map(key => resolveUserFile(key)),
-            Watcher.getInputsFromMetafile(this.context.commonJsProdBuildResult?.metafile).map(key => resolveUserFile(key)),
-            Watcher.getInputsFromMetafile(this.context.esmBuildResult?.metafile).map(key => resolveUserFile(key))
-        ].map(list => Promise.all(list))).then(res => res.flat());
+        return Promise.all(
+            [
+                Watcher.getInputsFromMetafile(
+                    this.context.commonJsDevBuildResult?.metafile
+                ).map(key => resolveUserFile(key)),
+                Watcher.getInputsFromMetafile(
+                    this.context.commonJsProdBuildResult?.metafile
+                ).map(key => resolveUserFile(key)),
+                Watcher.getInputsFromMetafile(
+                    this.context.esmBuildResult?.metafile
+                ).map(key => resolveUserFile(key))
+            ].map(list => Promise.all(list))
+        ).then(res => res.flat());
     }
 }
 
-export default async function watch(opts: WatchOpts) {
+export default async function watch(opts: WatchOpts): Promise<void> {
     logger.level = opts.verbose ? LogLevel.Verbose : LogLevel.Info;
     process.stdin.setRawMode(true);
 
     const context: TaskContext = {
         opts,
         watch: true,
-        ...await getListrContext()
+        ...(await getListrContext())
     };
 
     await mkdir(context.cacheDir, {recursive: true});
 
     try {
         await run<TaskContext>(context, async (ctx, then) => {
-            await then("", async (_, then) => {
-                await then("Initial build", async (_, then) => {
-                    await prepare(then);
-                    await bundle(then);
-                });
+            await then(
+                "",
+                async (_, then) => {
+                    await then("Initial build", async (_, then) => {
+                        await prepare(then);
+                        await bundle(then);
+                    });
 
-                await then("Watch for changes", async (ctx, then) => {
-                    const watcher = new Watcher(ctx, then);
-                    watcher.init();
-                    watcher.setupManualTrigger();
-                    await watcher.complete;
-                });
-            }, {
-                async cleanup(ctx) {
-                    await rm(ctx.cacheDir, {force: true, recursive: true});
+                    await then("Watch for changes", async (ctx, then) => {
+                        const watcher = new Watcher(ctx, then);
+                        watcher.init();
+                        watcher.setupManualTrigger();
+                        await watcher.complete;
+                    });
+                },
+                {
+                    async cleanup(ctx) {
+                        await rm(ctx.cacheDir, {force: true, recursive: true});
+                    }
                 }
-            });
+            );
         });
     } catch (err) {
         logger.error(err);

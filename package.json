@@ -1,95 +1,96 @@
 {
-  "name": "@alduino/pkg-lib",
-  "version": "0.4.1",
-  "description": "Bundler for libraries",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "typings": "dist/index.d.ts",
-  "bin": {
-    "pkg-lib": "bin.js"
-  },
-  "scripts": {
-    "build": "ts-node bin.ts build",
-    "watch": "ts-node bin.ts watch",
-    "release": "ts-node bin.ts build && changeset publish",
-    "format": "prettier . --write && eslint --fix .",
-    "lint": "eslint ."
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "linters": {
-      "*.(ts|tsx)": [
-        "eslint --fix",
-        "prettier --write"
-      ]
-    }
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Alduino/pkg-lib.git"
-  },
-  "keywords": [
-    "bundler",
-    "library"
-  ],
-  "author": "Alduino",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Alduino/pkg-lib/issues"
-  },
-  "homepage": "https://github.com/Alduino/pkg-lib#readme",
-  "dependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/helper-plugin-utils": "^7.14.5",
-    "@babel/plugin-transform-react-jsx": "^7.14.9",
-    "@babel/plugin-transform-react-jsx-development": "^7.14.5",
-    "@babel/plugin-transform-typescript": "^7.15.0",
-    "@esbuild-plugins/node-resolve": "^0.1.4",
-    "@microsoft/api-documenter": "^7.13.39",
-    "@microsoft/api-extractor": "^7.18.5",
-    "@microsoft/api-extractor-model": "^7.13.5",
-    "@microsoft/tsdoc": "^0.13.2",
-    "async-mutex": "^0.3.1",
-    "chokidar": "^3.5.2",
-    "consola": "^2.15.3",
-    "esbuild": "^0.12.20",
-    "execa": "^5.1.1",
-    "node-abort-controller": "^3.0.0",
-    "resolve-bin": "^0.4.1",
-    "sade": "^1.7.4",
-    "tiny-invariant": "^1.1.0",
-    "tiny-warning": "^1.0.3"
-  },
-  "devDependencies": {
-    "@babel/types": "^7.15.0",
-    "@changesets/cli": "^2.16.0",
-    "@types/babel__core": "^7.1.15",
-    "@types/babel__helper-plugin-utils": "^7.10.0",
-    "@types/babel__traverse": "^7.14.2",
-    "@types/node": "^16.6.1",
-    "@types/resolve-bin": "^0.4.1",
-    "@types/sade": "^1.7.3",
-    "@typescript-eslint/eslint-plugin": "^4.29.3",
-    "@typescript-eslint/parser": "^4.29.3",
-    "eslint": "^7.32.0",
-    "eslint-plugin-import": "^2.24.2",
-    "eslint-plugin-react": "^7.24.0",
-    "husky": "^7.0.2",
-    "lint-staged": "^11.1.2",
-    "prettier": "^2.3.2",
-    "ts-node": "^10.2.0",
-    "typescript": "^4.3.5"
-  },
-  "peerDependencies": {
-    "typescript": "^4.3.5"
-  },
-  "files": [
-    "dist",
-    "bin.js",
-    "dev.d.ts"
-  ]
+    "name": "@alduino/pkg-lib",
+    "version": "0.4.1",
+    "description": "Bundler for libraries",
+    "main": "dist/index.js",
+    "module": "dist/index.mjs",
+    "typings": "dist/index.d.ts",
+    "bin": {
+        "pkg-lib": "bin.js"
+    },
+    "scripts": {
+        "build": "ts-node bin.ts build",
+        "watch": "ts-node bin.ts watch",
+        "release": "ts-node bin.ts build && changeset publish",
+        "format": "prettier . --write && eslint --fix .",
+        "lint": "eslint ."
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "linters": {
+            "*.(ts|tsx)": [
+                "eslint --fix",
+                "prettier --write"
+            ]
+        }
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Alduino/pkg-lib.git"
+    },
+    "keywords": [
+        "bundler",
+        "library"
+    ],
+    "author": "Alduino",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Alduino/pkg-lib/issues"
+    },
+    "homepage": "https://github.com/Alduino/pkg-lib#readme",
+    "dependencies": {
+        "@babel/core": "^7.15.0",
+        "@babel/helper-plugin-utils": "^7.14.5",
+        "@babel/plugin-transform-react-jsx": "^7.14.9",
+        "@babel/plugin-transform-react-jsx-development": "^7.14.5",
+        "@babel/plugin-transform-typescript": "^7.15.0",
+        "@babel/traverse": "^7.15.0",
+        "@esbuild-plugins/node-resolve": "^0.1.4",
+        "@microsoft/api-documenter": "^7.13.39",
+        "@microsoft/api-extractor": "^7.18.5",
+        "@microsoft/api-extractor-model": "^7.13.5",
+        "@microsoft/tsdoc": "^0.13.2",
+        "async-mutex": "^0.3.1",
+        "chokidar": "^3.5.2",
+        "consola": "^2.15.3",
+        "esbuild": "^0.12.20",
+        "execa": "^5.1.1",
+        "node-abort-controller": "^3.0.0",
+        "resolve-bin": "^0.4.1",
+        "sade": "^1.7.4",
+        "tiny-invariant": "^1.1.0",
+        "tiny-warning": "^1.0.3"
+    },
+    "devDependencies": {
+        "@babel/types": "^7.15.0",
+        "@changesets/cli": "^2.16.0",
+        "@types/babel__core": "^7.1.15",
+        "@types/babel__helper-plugin-utils": "^7.10.0",
+        "@types/babel__traverse": "^7.14.2",
+        "@types/node": "^16.6.1",
+        "@types/resolve-bin": "^0.4.1",
+        "@types/sade": "^1.7.3",
+        "@typescript-eslint/eslint-plugin": "^4.29.3",
+        "@typescript-eslint/parser": "^4.29.3",
+        "eslint": "^7.32.0",
+        "eslint-plugin-import": "^2.24.2",
+        "eslint-plugin-react": "^7.24.0",
+        "husky": "^7.0.2",
+        "lint-staged": "^11.1.2",
+        "prettier": "^2.3.2",
+        "ts-node": "^10.2.0",
+        "typescript": "^4.3.5"
+    },
+    "peerDependencies": {
+        "typescript": "^4.3.5"
+    },
+    "files": [
+        "dist",
+        "bin.js",
+        "dev.d.ts"
+    ]
 }
