@@ -1,5 +1,5 @@
-import {ApiPackage} from "@microsoft/api-extractor-model";
 import {Serializable} from "child_process";
+import {ApiPackage} from "@microsoft/api-extractor-model";
 
 interface DocArg {
     fileName: string;

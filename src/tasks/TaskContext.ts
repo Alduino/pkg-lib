@@ -1,6 +1,6 @@
+import {BuildResult} from "esbuild";
 import Config from "../Config";
 import {BuildOpts} from "../commands/build";
-import {BuildResult} from "esbuild";
 
 export default interface TaskContext {
     opts: BuildOpts;

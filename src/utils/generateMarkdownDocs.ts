@@ -1,4 +1,5 @@
-import Config from "../Config";
+import {mkdir, writeFile} from "fs/promises";
+import {dirname} from "path";
 import {
     ApiDeclaredItem,
     ApiDocumentedItem,
@@ -11,8 +12,7 @@ import {
 } from "@microsoft/api-extractor-model";
 import {DocExcerpt, DocNode} from "@microsoft/tsdoc";
 import invariant from "tiny-invariant";
-import {mkdir, writeFile} from "fs/promises";
-import { dirname } from "path";
+import Config from "../Config";
 
 let headingLevel = 1;
 
@@ -42,8 +42,14 @@ function getExportType(token: string) {
 }
 
 function generateReactFunction(item: ApiDeclaredItem) {
-    invariant(ApiReturnTypeMixin.isBaseClassOf(item), "Api item does not have a return type");
-    invariant(ApiParameterListMixin.isBaseClassOf(item), "Api item does not have parameters");
+    invariant(
+        ApiReturnTypeMixin.isBaseClassOf(item),
+        "Api item does not have a return type"
+    );
+    invariant(
+        ApiParameterListMixin.isBaseClassOf(item),
+        "Api item does not have parameters"
+    );
 
     const exports = getExportType(item.excerptTokens[0].text);
 
@@ -67,13 +73,15 @@ function generateDeclaredItemDeclaration(item: ApiDeclaredItem) {
 function generateTitle(item: ApiItem) {
     const result: string[] = [];
 
-    if (item instanceof ApiDeclaredItem) result.push(generateDeclaredItemDeclaration(item));
+    if (item instanceof ApiDeclaredItem)
+        result.push(generateDeclaredItemDeclaration(item));
 
     return result.join("");
 }
 
 function docNodeConcat(item: DocNode, arr: string[] = []) {
-    if (item instanceof DocExcerpt && item.content.toString().trim()) arr.push(item.content.toString());
+    if (item instanceof DocExcerpt && item.content.toString().trim())
+        arr.push(item.content.toString());
     for (const child of item.getChildNodes()) docNodeConcat(child, arr);
     return arr;
 }
@@ -88,9 +96,7 @@ function generateSummary(item: ApiItem) {
 function generateParams(item: ApiItem) {
     if (!ApiParameterListMixin.isBaseClassOf(item)) return "";
 
-    const output = [
-        getHeading() + " Parameters"
-    ];
+    const output = [getHeading() + " Parameters"];
 
     if (item.parameters.length === 0) {
         return "";
@@ -100,7 +106,11 @@ function generateParams(item: ApiItem) {
         const paramBaseInfo = ` - \`${param.name}: ${param.parameterTypeExcerpt.text}\``;
 
         if (param.tsdocParamBlock) {
-            output.push(`${paramBaseInfo}: ${docNodeConcat(param.tsdocParamBlock.content).join("")}`)
+            output.push(
+                `${paramBaseInfo}: ${docNodeConcat(
+                    param.tsdocParamBlock.content
+                ).join("")}`
+            );
         } else {
             output.push(paramBaseInfo);
         }
@@ -111,10 +121,12 @@ function generateParams(item: ApiItem) {
 
 function generateReturns(item: ApiItem) {
     if (!ApiReturnTypeMixin.isBaseClassOf(item)) return "";
-    if (!(item instanceof ApiDocumentedItem) || !item.tsdocComment.returnsBlock) return "";
+    if (!(item instanceof ApiDocumentedItem) || !item.tsdocComment.returnsBlock)
+        return "";
 
     const output = [
-        getHeading(), " Returns\n",
+        getHeading(),
+        " Returns\n",
         `\`${item.returnTypeExcerpt.text}\`:`,
         docNodeConcat(item.tsdocComment.returnsBlock.content).join("")
     ];
@@ -157,14 +169,23 @@ function generateItem(config: Config, item: ApiItem, output: string[]) {
     );
     headingLevel--;
 
-    if (ApiReleaseTagMixin.isBaseClassOf(item) && item.releaseTag === ReleaseTag.Beta) {
-        output.push("> **Warning**: This is part of the beta API, and is subject to change at any time.");
+    if (
+        ApiReleaseTagMixin.isBaseClassOf(item) &&
+        item.releaseTag === ReleaseTag.Beta
+    ) {
+        output.push(
+            "> **Warning**: This is part of the beta API, and is subject to change at any time."
+        );
     }
 
     output.push(...childOutput);
 }
 
-export default async function generateMarkdownDocs(config: Config, outputFile: string, apiPackage: ApiPackage) {
+export default async function generateMarkdownDocs(
+    config: Config,
+    outputFile: string,
+    apiPackage: ApiPackage
+): Promise<void> {
     const source: string[] = [];
 
     for (const item of apiPackage.members) {

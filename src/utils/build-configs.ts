@@ -1,26 +1,32 @@
-import {BuildOptions, Plugin, PluginBuild} from "esbuild";
-import NodeResolvePlugin from "@esbuild-plugins/node-resolve";
 import {readFile} from "fs/promises";
-import {Node, transform} from "@babel/core";
 import {relative} from "path";
-import Config from "../Config";
+import {Node, transform} from "@babel/core";
 import {declare} from "@babel/helper-plugin-utils";
-import {getUserDirectory} from "./resolveUserFile";
 import type {NodePath} from "@babel/traverse";
 import type {CallExpression} from "@babel/types";
+import NodeResolve from "@esbuild-plugins/node-resolve";
+import {BuildOptions, Plugin, PluginBuild} from "esbuild";
 import invariant from "tiny-invariant";
+import Config from "../Config";
+import {getUserDirectory} from "./resolveUserFile";
 
 export type JSX = "react-jsx" | "createElement";
 
-function babelWarn(fn: string): (message: string, fileName: string, node: Node) => string {
-    return (message, fileName, {loc: {start}}) => `Warning: Invalid \`${fn}\` call. ${message} (at ${fileName}:${start.line + 1}:${start.column + 1})`;
+function babelWarn(
+    fn: string
+): (message: string, fileName: string, node: Node) => string {
+    return (message, fileName, {loc: {start}}) =>
+        `Warning: Invalid \`${fn}\` call. ${message} (at ${fileName}:${
+            start.line + 1
+        }:${start.column + 1})`;
 }
 
 const invariantBabelPlugin = declare(({types: t}, opts) => {
     const isDev: boolean = opts.isDev ?? true;
     const file = opts.file;
 
-    const requireExpressionStatements: boolean = opts.requireExpressionStatements;
+    const requireExpressionStatements: boolean =
+        opts.requireExpressionStatements;
 
     const invariantFunctionNames: string[] = opts.invariant;
     const warningFunctionNames: string[] = opts.warning;
@@ -35,18 +41,62 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
 
         const warn = babelWarn("invariant");
 
-        invariant(!requireExpressionStatements || t.isExpressionStatement(path.parent), warn("Cannot be used as part of an expression.", file, path.node));
-        invariant(firstArgument, warn("Missing check parameter.", file, path.node));
-        invariant(firstArgument.isExpression(), warn("The first argument (the check) must be an expression.", file, firstArgument.node));
-        invariant(secondArgument, warn("Missing message parameter.", file, path.node));
-        invariant(secondArgument.isExpression(), warn("The second argument (the message) must be an expression.", file, secondArgument.node));
+        invariant(
+            !requireExpressionStatements ||
+                t.isExpressionStatement(path.parent),
+            warn("Cannot be used as part of an expression.", file, path.node)
+        );
+        invariant(
+            firstArgument,
+            warn("Missing check parameter.", file, path.node)
+        );
+        invariant(
+            firstArgument.isExpression(),
+            warn(
+                "The first argument (the check) must be an expression.",
+                file,
+                firstArgument.node
+            )
+        );
+        invariant(
+            secondArgument,
+            warn("Missing message parameter.", file, path.node)
+        );
+        invariant(
+            secondArgument.isExpression(),
+            warn(
+                "The second argument (the message) must be an expression.",
+                file,
+                secondArgument.node
+            )
+        );
 
-        const devExpr = t.callExpression(callee.node, [falseLiteral, secondArgument.node]);
+        const devExpr = t.callExpression(callee.node, [
+            falseLiteral,
+            secondArgument.node
+        ]);
         const prodExpr = t.callExpression(callee.node, [falseLiteral]);
-        const joined = t.conditionalExpression(t.binaryExpression("!==", t.memberExpression(t.memberExpression(t.identifier("process"), t.identifier("env")), t.identifier("NODE_ENV")), t.stringLiteral("production")), devExpr, prodExpr);
+        const joined = t.conditionalExpression(
+            t.binaryExpression(
+                "!==",
+                t.memberExpression(
+                    t.memberExpression(
+                        t.identifier("process"),
+                        t.identifier("env")
+                    ),
+                    t.identifier("NODE_ENV")
+                ),
+                t.stringLiteral("production")
+            ),
+            devExpr,
+            prodExpr
+        );
 
-        const callExpr = isDev === true ? devExpr : isDev === false ? prodExpr : joined;
-        path.replaceWith(t.logicalExpression("||", firstArgument.node, callExpr));
+        const callExpr =
+            isDev === true ? devExpr : isDev === false ? prodExpr : joined;
+        path.replaceWith(
+            t.logicalExpression("||", firstArgument.node, callExpr)
+        );
         path.skip();
     }
 
@@ -56,19 +106,58 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
 
         const warn = babelWarn("warning");
 
-        invariant(!requireExpressionStatements || t.isExpressionStatement(path.parent), warn("Cannot be used as part of an expression.", file, path.node));
-        invariant(firstArgument, warn("Missing check parameter.", file, path.node));
-        invariant(firstArgument.isExpression(), warn("The first argument (the check) must be an expression.", file, firstArgument.node));
+        invariant(
+            !requireExpressionStatements ||
+                t.isExpressionStatement(path.parent),
+            warn("Cannot be used as part of an expression.", file, path.node)
+        );
+        invariant(
+            firstArgument,
+            warn("Missing check parameter.", file, path.node)
+        );
+        invariant(
+            firstArgument.isExpression(),
+            warn(
+                "The first argument (the check) must be an expression.",
+                file,
+                firstArgument.node
+            )
+        );
 
-        const devExpr = t.callExpression(callee.node, [falseLiteral, ...args.map(arg => arg.node)]);
+        const devExpr = t.callExpression(callee.node, [
+            falseLiteral,
+            ...args.map(arg => arg.node)
+        ]);
 
         if (isDev === false) {
             path.remove();
             return;
         } else if (isDev === true) {
-            path.replaceWith(t.logicalExpression("||", firstArgument.node, devExpr));
+            path.replaceWith(
+                t.logicalExpression("||", firstArgument.node, devExpr)
+            );
         } else {
-            path.replaceWith(t.logicalExpression("||", t.logicalExpression("&&", firstArgument.node, t.binaryExpression("!==", t.memberExpression(t.memberExpression(t.identifier("process"), t.identifier("env")), t.identifier("NODE_ENV")), t.stringLiteral("production"))), devExpr));
+            path.replaceWith(
+                t.logicalExpression(
+                    "||",
+                    t.logicalExpression(
+                        "&&",
+                        firstArgument.node,
+                        t.binaryExpression(
+                            "!==",
+                            t.memberExpression(
+                                t.memberExpression(
+                                    t.identifier("process"),
+                                    t.identifier("env")
+                                ),
+                                t.identifier("NODE_ENV")
+                            ),
+                            t.stringLiteral("production")
+                        )
+                    ),
+                    devExpr
+                )
+            );
         }
 
         path.skip();
@@ -89,15 +178,36 @@ const invariantBabelPlugin = declare(({types: t}, opts) => {
                 }
             },
             Identifier(path) {
-                if (replaceDevWithProcessEnv && path.node.name === "__DEV__" && !t.isObjectMember(path.parent)) {
-                    path.replaceWith(t.binaryExpression("!==", t.memberExpression(t.memberExpression(t.identifier("process"), t.identifier("env")), t.identifier("NODE_ENV")), t.stringLiteral("production")));
+                if (
+                    replaceDevWithProcessEnv &&
+                    path.node.name === "__DEV__" &&
+                    !t.isObjectMember(path.parent)
+                ) {
+                    path.replaceWith(
+                        t.binaryExpression(
+                            "!==",
+                            t.memberExpression(
+                                t.memberExpression(
+                                    t.identifier("process"),
+                                    t.identifier("env")
+                                ),
+                                t.identifier("NODE_ENV")
+                            ),
+                            t.stringLiteral("production")
+                        )
+                    );
                 }
             }
         }
     };
 });
 
-async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log?: string[]): Promise<Plugin> {
+async function pkglibPlugin(
+    config: Config,
+    jsx: JSX,
+    isDev: boolean | null,
+    log?: string[]
+): Promise<Plugin> {
     const entryDir = await getUserDirectory();
 
     return {
@@ -109,15 +219,20 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log
                 const result = await transform(src, {
                     plugins: [
                         "@babel/plugin-transform-typescript",
-                        [invariantBabelPlugin, {
-                            isDev: isDev ?? -1,
-                            log,
-                            file: relative(entryDir, args.path),
-                            invariant: config.invariant,
-                            warning: config.warning,
-                            replaceDevWithProcessEnv: isDev === null && config.dev,
-                            requireExpressionStatements: config.recommendedExprCheck
-                        }]
+                        [
+                            invariantBabelPlugin,
+                            {
+                                isDev: isDev ?? -1,
+                                log,
+                                file: relative(entryDir, args.path),
+                                invariant: config.invariant,
+                                warning: config.warning,
+                                replaceDevWithProcessEnv:
+                                    isDev === null && config.dev,
+                                requireExpressionStatements:
+                                    config.recommendedExprCheck
+                            }
+                        ]
                     ]
                 });
                 return {contents: result.code};
@@ -128,20 +243,35 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log
                 const result = await transform(src, {
                     filename: "/" + relative(entryDir, args.path),
                     plugins: [
-                        ["@babel/plugin-transform-typescript", {
-                            isTSX: true
-                        }],
-                        [isDev && jsx === "react-jsx" ? "@babel/plugin-transform-react-jsx-development" : "@babel/plugin-transform-react-jsx", {
-                            runtime: jsx === "react-jsx" ? "automatic" : "classic"
-                        }],
-                        [invariantBabelPlugin, {
-                            isDev: isDev ?? -1,
-                            log,
-                            file: relative(entryDir, args.path),
-                            invariant: config.invariant,
-                            warning: config.warning,
-                            requireExpressionStatements: config.recommendedExprCheck
-                        }]
+                        [
+                            "@babel/plugin-transform-typescript",
+                            {
+                                isTSX: true
+                            }
+                        ],
+                        [
+                            isDev && jsx === "react-jsx"
+                                ? "@babel/plugin-transform-react-jsx-development"
+                                : "@babel/plugin-transform-react-jsx",
+                            {
+                                runtime:
+                                    jsx === "react-jsx"
+                                        ? "automatic"
+                                        : "classic"
+                            }
+                        ],
+                        [
+                            invariantBabelPlugin,
+                            {
+                                isDev: isDev ?? -1,
+                                log,
+                                file: relative(entryDir, args.path),
+                                invariant: config.invariant,
+                                warning: config.warning,
+                                requireExpressionStatements:
+                                    config.recommendedExprCheck
+                            }
+                        ]
                     ].filter(v => v)
                 });
                 return {contents: result.code};
@@ -151,26 +281,39 @@ async function pkglibPlugin(config: Config, jsx: JSX, isDev: boolean | null, log
                 const src = await readFile(args.path, "utf8");
                 const result = await transform(src, {
                     plugins: [
-                        ["@babel/plugin-transform-react-jsx", {
-                            runtime: jsx === "react-jsx" ? "automatic" : "classic"
-                        }],
-                        [invariantBabelPlugin, {
-                            isDev: isDev ?? -1,
-                            log,
-                            file: relative(entryDir, args.path),
-                            invariant: config.invariant,
-                            warning: config.warning,
-                            requireExpressionStatements: config.recommendedExprCheck
-                        }]
+                        [
+                            "@babel/plugin-transform-react-jsx",
+                            {
+                                runtime:
+                                    jsx === "react-jsx"
+                                        ? "automatic"
+                                        : "classic"
+                            }
+                        ],
+                        [
+                            invariantBabelPlugin,
+                            {
+                                isDev: isDev ?? -1,
+                                log,
+                                file: relative(entryDir, args.path),
+                                invariant: config.invariant,
+                                warning: config.warning,
+                                requireExpressionStatements:
+                                    config.recommendedExprCheck
+                            }
+                        ]
                     ]
                 });
                 return {contents: result.code};
             });
         }
-    }
+    };
 }
 
-function getCommonEsbuildOptions(config: Config, plugins?: (Plugin | false)[]): Partial<BuildOptions> {
+function getCommonEsbuildOptions(
+    config: Config,
+    plugins?: (Plugin | false)[]
+): Partial<BuildOptions> {
     return {
         entryPoints: [config.entrypoint],
         bundle: true,
@@ -178,22 +321,27 @@ function getCommonEsbuildOptions(config: Config, plugins?: (Plugin | false)[]): 
         target: config.target,
         external: ["/node_modules/*"],
         plugins: [
-            ...plugins.filter(pl => pl) as Plugin[],
-            NodeResolvePlugin({
+            ...(plugins.filter(pl => pl) as Plugin[]),
+            NodeResolve({
                 extensions: [".ts", ".js"],
                 onResolved(resolved) {
-                    if (resolved.includes("node_modules")) return {external: true};
+                    if (resolved.includes("node_modules"))
+                        return {external: true};
                     return resolved;
                 }
-            }),
+            })
         ]
     };
 }
 
-export async function createCommonJsDevBuild(config: Config, jsx?: JSX, incremental?: boolean): Promise<BuildOptions> {
+export async function createCommonJsDevBuild(
+    config: Config,
+    jsx?: JSX,
+    incremental?: boolean
+): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(config, jsx, true)
+            jsx && (await pkglibPlugin(config, jsx, true))
         ]),
         outfile: config.cjsDevOut,
         format: "cjs",
@@ -208,10 +356,14 @@ export async function createCommonJsDevBuild(config: Config, jsx?: JSX, incremen
     };
 }
 
-export async function createCommonJsProdBuild(config: Config, jsx: JSX, incremental?: boolean): Promise<BuildOptions> {
+export async function createCommonJsProdBuild(
+    config: Config,
+    jsx: JSX,
+    incremental?: boolean
+): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(config, jsx, false)
+            jsx && (await pkglibPlugin(config, jsx, false))
         ]),
         outfile: config.cjsProdOut,
         format: "cjs",
@@ -227,10 +379,14 @@ export async function createCommonJsProdBuild(config: Config, jsx: JSX, incremen
     };
 }
 
-export async function createEsmBuild(config: Config, jsx: JSX, incremental?: boolean): Promise<BuildOptions> {
+export async function createEsmBuild(
+    config: Config,
+    jsx: JSX,
+    incremental?: boolean
+): Promise<BuildOptions> {
     return {
         ...getCommonEsbuildOptions(config, [
-            jsx && await pkglibPlugin(config, jsx, null)
+            jsx && (await pkglibPlugin(config, jsx, null))
         ]),
         outfile: config.esmOut,
         format: "esm",

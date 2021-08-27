@@ -12,7 +12,5 @@ export interface ExampleProps {
  * @returns The rendered React element
  */
 export function Example({name}: ExampleProps): ReactElement {
-    return (
-        <p>Hello, {name}!</p>
-    )
+    return <p>Hello, {name}!</p>;
 }

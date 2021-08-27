@@ -1,12 +1,12 @@
-import StandardOpts from "./StandardOpts";
-import TaskContext from "../tasks/TaskContext";
-import getListrContext from "../utils/getListrContext";
-import run from "../utils/tasks";
-import prepare from "../tasks/prepare";
-import bundle from "../tasks/bundle";
+import {mkdir, rm} from "fs/promises";
 import logger, {LogLevel} from "consola";
 import Config from "../Config";
-import {mkdir, rm} from "fs/promises";
+import TaskContext from "../tasks/TaskContext";
+import bundle from "../tasks/bundle";
+import prepare from "../tasks/prepare";
+import getListrContext from "../utils/getListrContext";
+import run from "../utils/tasks";
+import StandardOpts from "./StandardOpts";
 
 interface BuildOptsChanges extends StandardOpts {
     config?: string;
@@ -17,28 +17,33 @@ interface BuildOptsChanges extends StandardOpts {
     warning?: string;
 }
 
-export type BuildOpts = Partial<Omit<Config, keyof BuildOptsChanges>> & BuildOptsChanges;
+export type BuildOpts = Partial<Omit<Config, keyof BuildOptsChanges>> &
+    BuildOptsChanges;
 
-export default async function build(opts: BuildOpts) {
+export default async function build(opts: BuildOpts): Promise<void> {
     logger.level = opts.verbose ? LogLevel.Verbose : LogLevel.Info;
 
     const context: TaskContext = {
         opts,
-        ...await getListrContext()
+        ...(await getListrContext())
     };
 
     await mkdir(context.cacheDir, {recursive: true});
 
     try {
         await run<TaskContext>(context, async (ctx, then) => {
-            await then("", async (_, then) => {
-                await prepare(then);
-                await bundle(then);
-            }, {
-                async cleanup(ctx) {
-                    await rm(ctx.cacheDir, {force: true, recursive: true})
+            await then(
+                "",
+                async (_, then) => {
+                    await prepare(then);
+                    await bundle(then);
+                },
+                {
+                    async cleanup(ctx) {
+                        await rm(ctx.cacheDir, {force: true, recursive: true});
+                    }
                 }
-            });
+            );
         });
     } catch (err) {
         logger.error(err);

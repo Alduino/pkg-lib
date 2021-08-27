@@ -6,30 +6,30 @@ Inspired by [tsdx](https://tsdx.io/), [aqu](https://github.com/ArtiomTr/aqu).
 
 ## Features
 
-- Supports Typescript, Javascript, React, etc
-- Builds a version for apps in dev mode, and another one with apps in prod mode.
-- Builds an ESModules version for better tree-shaking
-- Supports the new JSX transform (and correctly switches between `react-jsx` and `react-jsxdev`)
-- Optimises `invariant` and `warning` function calls
-- Generates documentation based on tsdoc
+-   Supports Typescript, Javascript, React, etc
+-   Builds a version for apps in dev mode, and another one with apps in prod mode.
+-   Builds an ESModules version for better tree-shaking
+-   Supports the new JSX transform (and correctly switches between `react-jsx` and `react-jsxdev`)
+-   Optimises `invariant` and `warning` function calls
+-   Generates documentation based on tsdoc
 
 ## Getting Started
 
 1. Install it with your favourite package manager:
 
-   ```shell
-   pnpm add -D @alduino/pkg-lib
-   ```
+    ```shell
+    pnpm add -D @alduino/pkg-lib
+    ```
 
 2. Specify what your package’s entrypoints are if you haven’t already, in your package.json:
 
-   ```json5
-   {
-       "main": "dist/index.js",
-       "module": "dist/index.mjs",
-       "typings": "dist/index.d.ts"
-   }
-   ```
+    ```json5
+    {
+        main: "dist/index.js",
+        module: "dist/index.mjs",
+        typings: "dist/index.d.ts"
+    }
+    ```
 
 3. Run `pkg-lib build`
 
@@ -37,10 +37,10 @@ Inspired by [tsdx](https://tsdx.io/), [aqu](https://github.com/ArtiomTr/aqu).
 
 ### `pkg-lib build`
 
-- `-c, --config`: The path to the configuration file. Defaults to `.pkglibrc`.
-- `--no-dev`: Disables `__DEV__` replacement
-- `--no-invariant`: Disables `invariant` optimisation
-- `--no-warning`: Disables `warning` optimisation
+-   `-c, --config`: The path to the configuration file. Defaults to `.pkglibrc`.
+-   `--no-dev`: Disables `__DEV__` replacement
+-   `--no-invariant`: Disables `invariant` optimisation
+-   `--no-warning`: Disables `warning` optimisation
 
 Other than this, you can use all the configuration values in the CLI too. This will override all other configuration.
 See `pkg-lib build --help` for more info.
@@ -71,37 +71,37 @@ For now, the actual code is emitted before tsc runs so you should still be able 
 
 pkg-lib reads its config from a `.pkglibrc` JSON file. Here’s the big list of every configuration option.
 
-- `entrypoint`: The file to enter from. Defaults a `src/index` that is a `js`, `ts`, `cjs`, `mjs`, `ejs`, or `esm` file.
-- `typings`: Output for Typescript typings. Defaults to `dist/index.d.ts`.
-- `cjsOut`: The output file for library consumer entry. Defaults to `dist/index.js`.
-- `cjsDevOut`: The output file for a development build. Defaults to `dist/[package].development.js`.
-- `cjsProdOut`: The output file for a production build. Defaults to `dist/[package].production.min.js`.
-- `esmOut`: The output file for an ESModule build. Defaults to `dist/index.mjs`.
-- `platform`: The target platform, one of `neutral`, `browser` or `node`. Defaults to `neutral`.
-- `target`: The JS syntax and std libs to target (e.g. `node12`, `es2019`). Defaults to `es6`.
-- `dev`: Enable `__DEV__` and `process.env.NODE_ENV`. Defaults to `true`.
-- `invariant`: Disables invariant replacing when false, or changes the function name. Use an array of identifiers for
-  multiple invariant functions. Defaults to `invariant`.
-- `warning`: Disables warning replacing when false, or changes the function name. Use an array of identifiers for
-  multiple warning functions. Defaults to `warning`.
-- `docsDir`: Output directory for documentation files. They will be put in `{docsDir}/{unscopedPackageName}.md`.
-  Disabled by default.
+-   `entrypoint`: The file to enter from. Defaults a `src/index` that is a `js`, `ts`, `cjs`, `mjs`, `ejs`, or `esm` file.
+-   `typings`: Output for Typescript typings. Defaults to `dist/index.d.ts`.
+-   `cjsOut`: The output file for library consumer entry. Defaults to `dist/index.js`.
+-   `cjsDevOut`: The output file for a development build. Defaults to `dist/[package].development.js`.
+-   `cjsProdOut`: The output file for a production build. Defaults to `dist/[package].production.min.js`.
+-   `esmOut`: The output file for an ESModule build. Defaults to `dist/index.mjs`.
+-   `platform`: The target platform, one of `neutral`, `browser` or `node`. Defaults to `neutral`.
+-   `target`: The JS syntax and std libs to target (e.g. `node12`, `es2019`). Defaults to `es6`.
+-   `dev`: Enable `__DEV__` and `process.env.NODE_ENV`. Defaults to `true`.
+-   `invariant`: Disables invariant replacing when false, or changes the function name. Use an array of identifiers for
+    multiple invariant functions. Defaults to `invariant`.
+-   `warning`: Disables warning replacing when false, or changes the function name. Use an array of identifiers for
+    multiple warning functions. Defaults to `warning`.
+-   `docsDir`: Output directory for documentation files. They will be put in `{docsDir}/{unscopedPackageName}.md`.
+    Disabled by default.
 
 You can also set some of these in your `package.json`:
 
-- `source` sets `entrypoint`
-- `typings` sets itself
-- `main` sets `cjsOut`
-- `module` sets `esmOut`
-- `docs` sets `docsDir`
+-   `source` sets `entrypoint`
+-   `typings` sets itself
+-   `main` sets `cjsOut`
+-   `module` sets `esmOut`
+-   `docs` sets `docsDir`
 
 Run `pkg-lib build` to run the build. You can set a script for this in your `package.json`:
 
 ```json
 {
-  "scripts": {
-    "build": "pkg-lib build"
-  }
+    "scripts": {
+        "build": "pkg-lib build"
+    }
 }
 ```
 
@@ -136,12 +136,12 @@ data (functions and symbols are not supported), e.g. to make a table of contents
 
 ##### Notes:
 
-- The default value returned from `getContext()` when you haven’t called `setContext()` yet is `null`.
-- Setting the context to `undefined` will actually set it to `null`.
+-   The default value returned from `getContext()` when you haven’t called `setContext()` yet is `null`.
+-   Setting the context to `undefined` will actually set it to `null`.
 
-- Don’t edit the object passed into `setContext` or returned from `getContext` without calling `setContext` with it
-  again. Due to the implementation of these functions, these edits will change the value in the current hook, but it
-  will not persist to others.
+-   Don’t edit the object passed into `setContext` or returned from `getContext` without calling `setContext` with it
+    again. Due to the implementation of these functions, these edits will change the value in the current hook, but it
+    will not persist to others.
 
 #### Hooks
 
@@ -166,10 +166,10 @@ and [here](https://github.com/Alduino/pkg-lib/blob/master/src/utils/generateMark
 
 It is passed some values as an object in the first parameter:
 
-- `fileName: string`: The name that the file you create should be called, without an extension
-- `outputDirectory: string`: The directory that the file should be put in
-- `source: ApiPackage`: Information about each export.
-  See [@microsoft/api-extractor-model](https://www.npmjs.com/package/@microsoft/api-extractor-model).
+-   `fileName: string`: The name that the file you create should be called, without an extension
+-   `outputDirectory: string`: The directory that the file should be put in
+-   `source: ApiPackage`: Information about each export.
+    See [@microsoft/api-extractor-model](https://www.npmjs.com/package/@microsoft/api-extractor-model).
 
 ##### `start`
 
@@ -205,12 +205,12 @@ if (process.env.NODE_ENV === "production") {
 
 There are some significant differences however, that could change how your code works:
 
-- The check is done before calling `invariant`, so that it’s only called if it needs to be. This looks more
-  like `if (!(5 + 5 > 10)) invariant(false)`.
-- The result of the check will be returned as the result of the expression. With `foo = invariant("test")`, foo will be
-  set to `"test"` if it is truthy. To combat this, pkg-lib will prevent you from calling `invariant` as a part of an
-  expression. If you want to disable this (which is not recommended), set  `recommendedExprCheck` in the config
-  to `false`.
+-   The check is done before calling `invariant`, so that it’s only called if it needs to be. This looks more
+    like `if (!(5 + 5 > 10)) invariant(false)`.
+-   The result of the check will be returned as the result of the expression. With `foo = invariant("test")`, foo will be
+    set to `"test"` if it is truthy. To combat this, pkg-lib will prevent you from calling `invariant` as a part of an
+    expression. If you want to disable this (which is not recommended), set `recommendedExprCheck` in the config
+    to `false`.
 
 If you do not want to use `invariant`, disable it by setting `invariant` in the config to `false`.
 
@@ -229,13 +229,16 @@ the function you want to use. If there are multiple, you can set it to an array 
 #### Production build
 
 ```js
-5 + 5 > 10 || t(!1)
+5 + 5 > 10 || t(!1);
 ```
 
 #### ESM build
 
 ```js
-5 + 5 > 10 || (process.env.NODE_ENV !== "production" ? invariant(false, "Maths has stopped existing!") : invariant(false));
+5 + 5 > 10 ||
+    (process.env.NODE_ENV !== "production"
+        ? invariant(false, "Maths has stopped existing!")
+        : invariant(false));
 ```
 
 </details>
@@ -265,12 +268,12 @@ if (process.env.NODE_ENV !== "production") {
 
 There are some significant differences however, that could change how your code works:
 
-- The check is done before calling `warning`, so that it’s only called if it needs to be. This looks more
-  like `if (!(5 + 5 > 10)) warning(false, "The universe is about to collapse")`.
-- The result of the check will be returned as the result of the expression. With `foo = warning("test")`, foo will be
-  set to `"test"` if it is truthy. To combat this, pkg-lib will prevent you from calling `warning` as a part of an
-  expression. If you want to disable this (which is not recommended), set  `recommendedExprCheck` in the config
-  to `false`.
+-   The check is done before calling `warning`, so that it’s only called if it needs to be. This looks more
+    like `if (!(5 + 5 > 10)) warning(false, "The universe is about to collapse")`.
+-   The result of the check will be returned as the result of the expression. With `foo = warning("test")`, foo will be
+    set to `"test"` if it is truthy. To combat this, pkg-lib will prevent you from calling `warning` as a part of an
+    expression. If you want to disable this (which is not recommended), set `recommendedExprCheck` in the config
+    to `false`.
 
 If you do not want to use `warning`, disable it by setting `warning` in the config to `false`.
 
@@ -293,7 +296,8 @@ No code is generated for production builds.
 #### ESM build
 
 ```js
-5 + 5 > 10 && process.env.NODE_ENV !== "production" || warning(false, "The universe is about to collapse");
+(5 + 5 > 10 && process.env.NODE_ENV !== "production") ||
+    warning(false, "The universe is about to collapse");
 ```
 
 </details>

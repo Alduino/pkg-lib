@@ -4,7 +4,10 @@
  * @param message The message to set in the error
  * @returns Only if `check` is true
  */
-export default function invariant(check: unknown, message: string): asserts check {
+export default function invariant(
+    check: unknown,
+    message: string
+): asserts check {
     if (!check) throw new Error(message ?? "Invariant failed");
 }
 
@@ -13,6 +16,6 @@ export default function invariant(check: unknown, message: string): asserts chec
  * @param check The value to check
  * @param message The message to log
  */
-export function warning(check: unknown, message: string) {
+export function warning(check: unknown, message: string): void {
     if (!check) console.warn("Warning:", message);
 }
