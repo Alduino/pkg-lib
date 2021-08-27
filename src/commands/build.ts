@@ -42,5 +42,6 @@ export default async function build(opts: BuildOpts) {
         });
     } catch (err) {
         logger.error(err);
+        process.exit(1);
     }
 }
