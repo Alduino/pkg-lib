@@ -86,8 +86,8 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
 
     const defaultConfig: Partial<Config> = {
         cjsOut: "dist/index.js",
-        cjsDevOut: `dist/${packageInfo.name}.development.js`,
-        cjsProdOut: `dist/${packageInfo.name}.production.min.js`,
+        cjsDevOut: `dist/development.js`,
+        cjsProdOut: `dist/production.min.js`,
         esmOut: "dist/index.mjs",
         platform: "neutral",
         target: "es6",
