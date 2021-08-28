@@ -3,7 +3,7 @@ lockfileVersion: 5.3
 specifiers:
   '@alduino/pkg-lib': file:..
   '@types/react': 17.0.19
-  react: ^17.0.2
+  react: 17.0.2
 
 devDependencies:
   '@alduino/pkg-lib': link:..
