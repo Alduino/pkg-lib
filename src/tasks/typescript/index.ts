@@ -7,6 +7,7 @@ import documentation, {
     CUSTOM_DOCUMENTER_EXTS
 } from "./documentation";
 import prepare from "./prepare";
+import readTsconfig from "../../utils/readTsconfig";
 
 export default createStaticTask(
     "Typescript features",
@@ -16,6 +17,7 @@ export default createStaticTask(
         await documentation(then);
     },
     {
+        enabled: async () => !!await readTsconfig(),
         async cleanup({
             paths: {userDir},
             tsDeclTempEntry,
