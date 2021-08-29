@@ -4,8 +4,9 @@ import TaskContext from "../tasks/TaskContext";
 import getTemporaryFile from "./getTemporaryFile";
 import readTsconfig from "./readTsconfig";
 import {getUserDirectory} from "./resolveUserFile";
+import {BuildOpts} from "../commands/build";
 
-export default async function getListrContext(): Promise<Pick<TaskContext, "jsx" | "cacheDir">> {
+export default async function getListrContext(opts: BuildOpts): Promise<TaskContext> {
     logger.log(
         "Hint: Add `.pkglib-cache.*.tmp` to your ignore file to ignore pkg-lib's cache"
     );
@@ -30,8 +31,13 @@ export default async function getListrContext(): Promise<Pick<TaskContext, "jsx"
         );
     }
 
+    if (!tsconfig && /\.tsx?$/.test(opts.entrypoint)) {
+        logger.warn("Entrypoint is a Typescript file but there is no tsconfig.json file. Typescript-specific features will not run.");
+    }
+
     return {
         jsx: jsxTransform,
-        cacheDir
+        cacheDir,
+        opts
     };
 }
