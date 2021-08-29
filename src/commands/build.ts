@@ -23,10 +23,7 @@ export type BuildOpts = Partial<Omit<Config, keyof BuildOptsChanges>> &
 export default async function build(opts: BuildOpts): Promise<void> {
     logger.level = opts.verbose ? LogLevel.Verbose : LogLevel.Info;
 
-    const context: TaskContext = {
-        opts,
-        ...(await getListrContext())
-    };
+    const context: TaskContext = await getListrContext(opts);
 
     await mkdir(context.cacheDir, {recursive: true});
 

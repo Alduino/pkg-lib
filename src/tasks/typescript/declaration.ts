@@ -18,7 +18,7 @@ export const buildDeclaration = createStaticTask(
         );
 
         // require tsconfig to have `include` or `files` set
-        const tsconfig = await readTsconfig();
+        const tsconfig = await readTsconfig(true);
         invariant(
             tsconfig.include || tsconfig.files,
             "tsconfig must have `include` or `files` keys, to exclude temporary build files"
@@ -35,7 +35,7 @@ export const buildDeclaration = createStaticTask(
         const expectedExcludeItems = ["**/node_modules", "**/.*/"];
 
         if (
-            !expectedExcludeItems.every(item => tsconfig.exclude.includes(item))
+            !expectedExcludeItems.every(item => tsconfig.exclude?.includes(item))
         ) {
             logger.warn(
                 `\`exclude\` in tsconfig should contain ${expectedExcludeItems

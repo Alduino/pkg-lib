@@ -264,9 +264,8 @@ export default async function watch(opts: WatchOpts): Promise<void> {
     process.stdin.setRawMode(true);
 
     const context: TaskContext = {
-        opts,
         watch: true,
-        ...(await getListrContext())
+        ...await getListrContext(opts)
     };
 
     await mkdir(context.cacheDir, {recursive: true});
