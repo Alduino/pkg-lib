@@ -1,12 +1,11 @@
 import logger from "consola";
+import invariant from "tiny-invariant";
 import TaskContext from "../tasks/TaskContext";
 import getTemporaryFile from "./getTemporaryFile";
 import readTsconfig from "./readTsconfig";
 import {getUserDirectory} from "./resolveUserFile";
 
-export default async function getListrContext(): Promise<
-    Pick<TaskContext, "jsx" | "cacheDir">
-> {
+export default async function getListrContext(): Promise<Pick<TaskContext, "jsx" | "cacheDir">> {
     logger.log(
         "Hint: Add `.pkglib-cache.*.tmp` to your ignore file to ignore pkg-lib's cache"
     );
@@ -23,12 +22,7 @@ export default async function getListrContext(): Promise<
         ? "react-jsx"
         : "createElement";
 
-    if (!tsconfig.compilerOptions?.isolatedModules) {
-        logger.error(
-            "compilerOptions.isolatedModules must be `true` in your tsconfig"
-        );
-        process.exit(1);
-    }
+    invariant(tsconfig?.compilerOptions?.isolatedModules, "compilerOptions.isolatedModules must be `true` in your tsconfig");
 
     if (jsxOpt === "react-jsx") {
         logger.warn(
