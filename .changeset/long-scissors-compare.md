@@ -2,4 +2,4 @@
 "@alduino/pkg-lib": patch
 ---
 
-Add check for if tsconfig exists before checking `compilerOptions` (#25)
+Add check for if tsconfig exists before checking `compilerOptions`
