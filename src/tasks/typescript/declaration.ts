@@ -18,7 +18,7 @@ export const buildDeclaration = createStaticTask(
         );
 
         // require tsconfig to have `include` or `files` set
-        const tsconfig = await readTsconfig();
+        const tsconfig = await readTsconfig(true);
         invariant(
             tsconfig.include || tsconfig.files,
             "tsconfig must have `include` or `files` keys, to exclude temporary build files"
