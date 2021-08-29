@@ -1,13 +1,11 @@
 import logger from "consola";
+import invariant from "tiny-invariant";
 import TaskContext from "../tasks/TaskContext";
 import getTemporaryFile from "./getTemporaryFile";
 import readTsconfig from "./readTsconfig";
 import {getUserDirectory} from "./resolveUserFile";
-import invariant from "tiny-invariant";
 
-export default async function getListrContext(): Promise<
-    Pick<TaskContext, "jsx" | "cacheDir">
-> {
+export default async function getListrContext(): Promise<Pick<TaskContext, "jsx" | "cacheDir">> {
     logger.log(
         "Hint: Add `.pkglib-cache.*.tmp` to your ignore file to ignore pkg-lib's cache"
     );
