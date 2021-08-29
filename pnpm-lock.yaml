@@ -28,7 +28,7 @@ specifiers:
   esbuild: ^0.12.20
   eslint: 7.32.0
   eslint-plugin-import: 2.24.2
-  eslint-plugin-react: 7.24.0
+  eslint-plugin-react: 7.25.0
   execa: ^5.1.1
   husky: 7.0.2
   lint-staged: 11.1.2
@@ -77,7 +77,7 @@ devDependencies:
   '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.4.2
   eslint: 7.32.0
   eslint-plugin-import: 2.24.2_eslint@7.32.0
-  eslint-plugin-react: 7.24.0_eslint@7.32.0
+  eslint-plugin-react: 7.25.0_eslint@7.32.0
   husky: 7.0.2
   lint-staged: 11.1.2
   prettier: 2.3.2
@@ -1596,8 +1596,8 @@ packages:
       tsconfig-paths: 3.11.0
     dev: true
 
-  /eslint-plugin-react/7.24.0_eslint@7.32.0:
-    resolution: {integrity: sha512-KJJIx2SYx7PBx3ONe/mEeMz4YE0Lcr7feJTCMyyKb/341NcjuAgim3Acgan89GfPv7nxXK2+0slu0CWXYM4x+Q==}
+  /eslint-plugin-react/7.25.0_eslint@7.32.0:
+    resolution: {integrity: sha512-bZL+HeB+Qaimb4ryOc+OYYOX0XnOr6FX30ZXkzL8iSJA3tATTtZ1YgYyjK3jGvVDcZMejfUaeS/5wKDfTgyfVw==}
     engines: {node: '>=4'}
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7
@@ -1606,6 +1606,7 @@ packages:
       array.prototype.flatmap: 1.2.4
       doctrine: 2.1.0
       eslint: 7.32.0
+      estraverse: 5.2.0
       has: 1.0.3
       jsx-ast-utils: 3.2.0
       minimatch: 3.0.4
