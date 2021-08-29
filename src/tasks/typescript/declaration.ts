@@ -35,7 +35,7 @@ export const buildDeclaration = createStaticTask(
         const expectedExcludeItems = ["**/node_modules", "**/.*/"];
 
         if (
-            !expectedExcludeItems.every(item => tsconfig.exclude.includes(item))
+            !expectedExcludeItems.every(item => tsconfig.exclude?.includes(item))
         ) {
             logger.warn(
                 `\`exclude\` in tsconfig should contain ${expectedExcludeItems
