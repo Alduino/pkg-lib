@@ -24,12 +24,7 @@ export default async function getListrContext(): Promise<
         ? "react-jsx"
         : "createElement";
 
-    if (!tsconfig?.compilerOptions?.isolatedModules) {
-        logger.error(
-            "compilerOptions.isolatedModules must be `true` in your tsconfig"
-        );
-        process.exit(1);
-    }
+    invariant(tsconfig?.compilerOptions?.isolatedModules, "compilerOptions.isolatedModules must be `true` in your tsconfig");
 
     if (jsxOpt === "react-jsx") {
         logger.warn(
