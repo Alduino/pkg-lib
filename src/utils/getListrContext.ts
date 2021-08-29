@@ -3,6 +3,7 @@ import TaskContext from "../tasks/TaskContext";
 import getTemporaryFile from "./getTemporaryFile";
 import readTsconfig from "./readTsconfig";
 import {getUserDirectory} from "./resolveUserFile";
+import invariant from "tiny-invariant";
 
 export default async function getListrContext(): Promise<
     Pick<TaskContext, "jsx" | "cacheDir">
@@ -23,7 +24,7 @@ export default async function getListrContext(): Promise<
         ? "react-jsx"
         : "createElement";
 
-    if (!tsconfig.compilerOptions?.isolatedModules) {
+    if (!tsconfig?.compilerOptions?.isolatedModules) {
         logger.error(
             "compilerOptions.isolatedModules must be `true` in your tsconfig"
         );
