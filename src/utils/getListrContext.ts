@@ -31,10 +31,6 @@ export default async function getListrContext(opts: BuildOpts): Promise<TaskCont
         );
     }
 
-    if (!tsconfig && /\.tsx?$/.test(opts.entrypoint)) {
-        logger.warn("Entrypoint is a Typescript file but there is no tsconfig.json file. Typescript-specific features will not run.");
-    }
-
     return {
         jsx: jsxTransform,
         cacheDir,
