@@ -1,5 +1,13 @@
 # @alduino/pkg-lib
 
+## 0.5.1
+
+### Patch Changes
+
+-   22900fd: Fix various tsconfig issues - Typescript features will now only run if there is a tsconfig.json file,
+    and pkg-lib will now warn you if your entrypoint is a Typescript file but there is no tsconfig.json
+-   efb4e49: Add check for if tsconfig exists before checking `compilerOptions`
+
 ## 0.5.0
 
 ### Minor Changes
