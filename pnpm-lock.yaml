@@ -14,7 +14,7 @@ specifiers:
   '@microsoft/api-extractor': ^7.18.5
   '@microsoft/api-extractor-model': ^7.13.5
   '@microsoft/tsdoc': ^0.13.2
-  '@types/babel__core': 7.1.15
+  '@types/babel__core': 7.1.16
   '@types/babel__helper-plugin-utils': 7.10.0
   '@types/babel__traverse': 7.14.2
   '@types/node': 16.7.4
@@ -67,7 +67,7 @@ dependencies:
 devDependencies:
   '@babel/types': 7.15.4
   '@changesets/cli': 2.17.0
-  '@types/babel__core': 7.1.15
+  '@types/babel__core': 7.1.16
   '@types/babel__helper-plugin-utils': 7.10.0
   '@types/babel__traverse': 7.14.2
   '@types/node': 16.7.4
@@ -782,10 +782,20 @@ packages:
       '@types/babel__traverse': 7.14.2
     dev: true
 
+  /@types/babel__core/7.1.16:
+    resolution: {integrity: sha512-EAEHtisTMM+KaKwfWdC3oyllIqswlznXCIVCt7/oRNrh+DhgT4UEBNC/jlADNjvw7UnfbcdkGQcPVZ1xYiLcrQ==}
+    dependencies:
+      '@babel/parser': 7.15.3
+      '@babel/types': 7.15.4
+      '@types/babel__generator': 7.6.3
+      '@types/babel__template': 7.4.1
+      '@types/babel__traverse': 7.14.2
+    dev: true
+
   /@types/babel__generator/7.6.3:
     resolution: {integrity: sha512-/GWCmzJWqV7diQW54smJZzWbSFf4QYtF71WCKhcx6Ru/tFyQIY2eiiITcCAeuPbNSvT9YCGkVMqqvSk2Z0mXiA==}
     dependencies:
-      '@babel/types': 7.15.0
+      '@babel/types': 7.15.4
     dev: true
 
   /@types/babel__helper-plugin-utils/7.10.0:
@@ -798,7 +808,7 @@ packages:
     resolution: {integrity: sha512-azBFKemX6kMg5Io+/rdGT0dkGreboUVR0Cdm3fz9QJWpaQGJRQXl7C+6hOTCZcMll7KFyEQpgbYI2lHdsS4U7g==}
     dependencies:
       '@babel/parser': 7.15.3
-      '@babel/types': 7.15.0
+      '@babel/types': 7.15.4
     dev: true
 
   /@types/babel__traverse/7.14.2:
