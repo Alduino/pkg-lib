@@ -215,7 +215,12 @@ async function pkglibPlugin(
         setup(build: PluginBuild) {
             build.onLoad({filter: /\.m?[jte]s[\dm]?$/}, async args => {
                 const src = await readFile(args.path, "utf8");
-                if (!src.includes("invariant")) return {};
+                const checkedValues = [
+                    ...config.invariant,
+                    ...config.warning,
+                    "__DEV__"
+                ];
+                if (checkedValues.every(el => !src.includes(el))) return {};
                 const result = await transform(src, {
                     plugins: [
                         "@babel/plugin-transform-typescript",
