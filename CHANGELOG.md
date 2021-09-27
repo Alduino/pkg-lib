@@ -1,5 +1,11 @@
 # @alduino/pkg-lib
 
+## 0.5.2
+
+### Patch Changes
+
+-   cfc457f: Include all potential replacements (`invariant`, `warning`, `__DEV__`) in the cursory check to see if a file needs to be transformed by Babel
+
 ## 0.5.1
 
 ### Patch Changes
