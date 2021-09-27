@@ -1,0 +1,11 @@
+{
+  "name": "monorepo-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm recursive run build",
+    "watch": "pnpm recursive run watch"
+  },
+  "dependencies": {
+  }
+}

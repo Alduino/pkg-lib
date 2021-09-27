@@ -1,0 +1,14 @@
+{
+  "name": "repo-a",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "pkg-lib build",
+    "watch": "pkg-lib watch"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@alduino/pkg-lib": "../../../../"
+  }
+}
