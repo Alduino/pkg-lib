@@ -57,7 +57,7 @@
         "async-mutex": "^0.3.1",
         "chokidar": "^3.5.2",
         "consola": "^2.15.3",
-        "esbuild": "^0.12.20",
+        "esbuild": "^0.13.0",
         "execa": "^5.1.1",
         "node-abort-controller": "^3.0.0",
         "resolve-bin": "^0.4.1",
