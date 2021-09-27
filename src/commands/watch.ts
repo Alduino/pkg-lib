@@ -175,7 +175,7 @@ class Watcher {
                 this.queuedBuilds
             );
             process.stdout.write(
-                `@pl[w:c:${newBuildState}] Beginning new watch mode build.\n`
+                `@pl[w:b:${newBuildState}] Beginning new watch mode build.\n`
             );
         }
 
