@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Build example" type="js.build_tools.npm">
-    <package-json value="$PROJECT_DIR$/example/package.json" />
+  <configuration default="false" name="Build single example" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/example/single/package.json" />
     <command value="run" />
     <scripts>
       <script value="build" />
