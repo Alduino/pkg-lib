@@ -261,7 +261,7 @@ class Watcher {
 
 export default async function watch(opts: WatchOpts): Promise<void> {
     logger.level = opts.verbose ? LogLevel.Verbose : LogLevel.Info;
-    process.stdin.setRawMode(true);
+    if (process.stdin.isTTY) process.stdin.setRawMode(true);
 
     const context: TaskContext = {
         watch: true,
