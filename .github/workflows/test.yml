@@ -1,0 +1,15 @@
+name: Test
+on:
+  push:
+    branches:
+      - renovate/**
+  pull_request:
+env:
+  CI: true
+  PNPM_CACHE_FOLDER: .pnpm-store
+jobs:
+  succeed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Succeed (temporary)
+        run: exit 0
