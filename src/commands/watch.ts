@@ -189,8 +189,6 @@ class Watcher {
             ) => {
                 this.lastRun = innerTask;
                 await innerTask;
-                this.setupManualTrigger();
-                resolve();
 
                 if (innerTask.wasCancelled === "exception") {
                     // assume all builds failed, set them back to the `Queued` state
@@ -210,6 +208,9 @@ class Watcher {
                     if (this.queuedBuilds.typescript === BuildState.Building)
                         this.queuedBuilds.typescript = BuildState.None;
                 }
+
+                this.setupManualTrigger();
+                resolve();
             };
 
             this.then("Rebuild", async ctx => {
