@@ -95,3 +95,6 @@ dist
 
 # pkg-lib build cache
 .pkglib-cache.*.tmp
+
+# include .idea run configs
+!.idea/runConfigurations/*

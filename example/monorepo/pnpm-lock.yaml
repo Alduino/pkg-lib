@@ -1,0 +1,21 @@
+lockfileVersion: 5.3
+
+importers:
+
+  .:
+    specifiers: {}
+
+  packages/repo-a:
+    specifiers:
+      '@alduino/pkg-lib': ../../../../
+    devDependencies:
+      '@alduino/pkg-lib': link:../../../..
+
+  packages/repo-b:
+    specifiers:
+      '@alduino/pkg-lib': ../../../../
+      repo-a: workspace:^1.0.0
+    dependencies:
+      repo-a: link:../repo-a
+    devDependencies:
+      '@alduino/pkg-lib': link:../../../..
