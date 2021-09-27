@@ -7,7 +7,7 @@ specifiers:
   '@babel/plugin-transform-react-jsx-development': ^7.14.5
   '@babel/plugin-transform-typescript': ^7.15.0
   '@babel/traverse': ^7.15.0
-  '@babel/types': 7.15.4
+  '@babel/types': 7.15.6
   '@changesets/cli': 2.17.0
   '@esbuild-plugins/node-resolve': ^0.1.4
   '@microsoft/api-documenter': ^7.13.39
@@ -65,7 +65,7 @@ dependencies:
   tiny-warning: 1.0.3
 
 devDependencies:
-  '@babel/types': 7.15.4
+  '@babel/types': 7.15.6
   '@changesets/cli': 2.17.0
   '@types/babel__core': 7.1.16
   '@types/babel__helper-plugin-utils': 7.10.0
@@ -396,6 +396,14 @@ packages:
 
   /@babel/types/7.15.4:
     resolution: {integrity: sha512-0f1HJFuGmmbrKTCZtbm3cU+b/AqdEYk5toj5iQur58xkVMlS0JWaKxTBSmCXd47uiN7vbcozAupm6Mvs80GNhw==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      '@babel/helper-validator-identifier': 7.14.9
+      to-fast-properties: 2.0.0
+    dev: true
+
+  /@babel/types/7.15.6:
+    resolution: {integrity: sha512-BPU+7QhqNjmWyDO0/vitH/CuhpV8ZmK1wpKva8nuyNF5MJfuRNWMc+hc14+u9xT93kvykMdncrJT19h74uB1Ig==}
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/helper-validator-identifier': 7.14.9
