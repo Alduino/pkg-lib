@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - renovate/**
+      - changeset-release/**
   pull_request:
     branches-ignore:
       - renovate/**
+      - changeset-release/**
 env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
