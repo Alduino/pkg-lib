@@ -3,7 +3,6 @@ on:
     push:
         branches:
             - master
-            - renovate/**
 env:
     CI: true
     PNPM_CACHE_FOLDER: .pnpm-store
