@@ -28,7 +28,8 @@ const enum BuildState {
     Building
 }
 
-interface QueuedBuilds {
+// Note: first letter must be unique
+interface QueuedBuilds extends Record<string, BuildState> {
     prepare?: BuildState;
     code?: BuildState;
     typescript?: BuildState;
@@ -71,6 +72,18 @@ class Watcher {
         return Object.keys(metafile.inputs);
     }
 
+    /**
+     * Converts the state to a string. `Queued` states are signified by the
+     * first letter of the state name, in lower case. Any other states are
+     * ignored.
+     */
+    private static makeQueuedBuildsString(builds: QueuedBuilds) {
+        return Object.entries<BuildState>(builds)
+            .filter(([, state]) => state === BuildState.Queued)
+            .map(([name]) => name[0].toLowerCase())
+            .join("");
+    }
+
     init() {
         this.watcher.on("change", path => this.handleUpdate(path));
         this.watcher.on("add", path => this.handleUpdate(path));
@@ -82,7 +95,18 @@ class Watcher {
         this.lastManualTrigger?.cancel();
 
         process.stdin.resume();
-        logger.info("Press `r` to build again, or `q` to quit gracefully.");
+
+        if (process.stdin.isTTY) {
+            logger.info("Press `r` to build again, or `q` to quit gracefully.");
+        } else {
+            const newBuildState = Watcher.makeQueuedBuildsString(
+                this.queuedBuilds
+            );
+
+            process.stdout.write(
+                `@pl[w:c:${newBuildState}] Watch mode build complete. Type r+enter to build again, or q+enter to quit.\n`
+            );
+        }
 
         const handler = (chunk: Buffer) => {
             switch (chunk.toString("ascii")[0]) {
@@ -145,6 +169,15 @@ class Watcher {
 
     private async trigger(): Promise<void> {
         this.lastRun?.cancel();
+
+        if (!process.stdin.isTTY) {
+            const newBuildState = Watcher.makeQueuedBuildsString(
+                this.queuedBuilds
+            );
+            process.stdout.write(
+                `@pl[w:c:${newBuildState}] Beginning new watch mode build.\n`
+            );
+        }
 
         await this.buildMutex.runExclusive(async () => {
             this.lastManualTrigger?.cancel();
@@ -265,7 +298,7 @@ export default async function watch(opts: WatchOpts): Promise<void> {
 
     const context: TaskContext = {
         watch: true,
-        ...await getListrContext(opts)
+        ...(await getListrContext(opts))
     };
 
     await mkdir(context.cacheDir, {recursive: true});
