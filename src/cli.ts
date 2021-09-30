@@ -20,6 +20,7 @@ export default function createCli(args: string[]): void {
             ".pkglibrc"
         )
         .option("-e, --entrypoint <path>", "File to enter from")
+        .option("-s, --entrypoints <paths>", "Entrypoint paths, separated by `,`")
         .option("-T, --typings <path>", "Output for Typescript typings")
         .option("-O, --cjsOut <path>", "Output for CommonJS entrypoint")
         .option(
@@ -45,6 +46,8 @@ export default function createCli(args: string[]): void {
             "-d, --docsDir <path>",
             "Output directory for documentation files"
         )
+        .option("--cache <directory>", "Sets the directory for pkg-lib's cache")
+        .option("--noCleanup", "Disables removal of the cache directory")
         .action(build);
 
     prog.command("watch")
@@ -55,6 +58,7 @@ export default function createCli(args: string[]): void {
             ".pkglibrc"
         )
         .option("-e, --entrypoint <path>", "File to enter from")
+        .option("-s, --entrypoints <paths>", "Entrypoint paths, separated by `,`")
         .option("-T, --typings <path>", "Output for Typescript typings")
         .option("-O, --cjsOut <path>", "Output for CommonJS entrypoint")
         .option(
@@ -80,6 +84,7 @@ export default function createCli(args: string[]): void {
             "-d, --docsDir <path>",
             "Output directory for documentation files"
         )
+        .option("--cache <directory>", "Sets the directory for pkg-lib's cache")
         .action(watch);
 
     prog.parse(args);

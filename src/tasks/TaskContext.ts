@@ -5,6 +5,7 @@ import {BuildOpts} from "../commands/build";
 export default interface TaskContext {
     opts: BuildOpts;
     paths?: {
+        tempBundle: string;
         userDir: string;
         config: string;
         packageJson: string;
@@ -16,7 +17,7 @@ export default interface TaskContext {
     commonJsDevBuildResult?: BuildResult;
     commonJsProdBuildResult?: BuildResult;
     esmBuildResult?: BuildResult;
-    tsDeclTempEntry?: string;
+    tsDeclTempEntry?: Record<string, string>;
     tsDeclTempOut?: string;
     tsDocsTempJson?: string;
     customDocGenTempCleanup?: () => Promise<void>;

@@ -4,13 +4,14 @@ import {Extractor, ExtractorConfig} from "@microsoft/api-extractor";
 import logger from "consola";
 import execa from "execa";
 import invariant from "tiny-invariant";
+import fillNameTemplate from "../../utils/fillNameTemplate";
 import readTsconfig from "../../utils/readTsconfig";
 import resolveUserFile, {getUserDirectory} from "../../utils/resolveUserFile";
 import {createStaticTask} from "../utils";
 
 export const buildDeclaration = createStaticTask(
     "Build declaration",
-    async ({tsDeclTempOut, watch, cacheDir, opts}) => {
+    async ({tsDeclTempOut, cacheDir, opts}) => {
         const userDir = await getUserDirectory();
         const tsconfigPath = relative(
             userDir,
@@ -35,7 +36,9 @@ export const buildDeclaration = createStaticTask(
         const expectedExcludeItems = ["**/node_modules", "**/.*/"];
 
         if (
-            !expectedExcludeItems.every(item => tsconfig.exclude?.includes(item))
+            !expectedExcludeItems.every(item =>
+                tsconfig.exclude?.includes(item)
+            )
         ) {
             logger.warn(
                 `\`exclude\` in tsconfig should contain ${expectedExcludeItems
@@ -54,19 +57,14 @@ export const buildDeclaration = createStaticTask(
             "--project",
             tsconfigPath,
             "--outDir",
-            tsDeclTempOut
+            tsDeclTempOut,
+            "--incremental",
+            "--tsBuildInfoFile",
+            resolve(cacheDir, "typescript.json")
         ];
 
         if (opts.verbose) {
             args.push("--extendedDiagnostics");
-        }
-
-        if (watch) {
-            args.push(
-                "--incremental",
-                "--tsBuildInfoFile",
-                resolve(cacheDir, "typescript.json")
-            );
         }
 
         const cp = execa("tsc", args, {
@@ -83,74 +81,85 @@ export const buildDeclaration = createStaticTask(
 
 export const bundleDeclaration = createStaticTask(
     "Bundle declaration",
-    async ({config, opts, tsDeclTempOut, tsDocsTempJson, watch, cacheDir}) => {
+    async ({
+        config,
+        opts,
+        tsDeclTempOut,
+        tsDocsTempJson,
+        tsDeclTempEntry,
+        watch,
+        cacheDir
+    }) => {
         const userDir = await getUserDirectory();
         const tsconfig = await readTsconfig(true);
 
-        const extractorConfig = ExtractorConfig.prepare({
-            configObject: {
-                mainEntryPointFilePath: relative(
-                    userDir,
-                    join(
-                        tsDeclTempOut,
-                        relative(
-                            userDir,
-                            join(
-                                dirname(config.entrypoint),
-                                basename(
-                                    config.entrypoint,
-                                    extname(config.entrypoint)
-                                ) + ".d.ts"
+        for (const name of Object.keys(config.entrypoints)) {
+            const tempEntryPath = tsDeclTempEntry[name];
+
+            const extractorConfig = ExtractorConfig.prepare({
+                configObject: {
+                    mainEntryPointFilePath: relative(
+                        userDir,
+                        join(
+                            tsDeclTempOut,
+                            relative(
+                                userDir,
+                                join(
+                                    dirname(tempEntryPath),
+                                    basename(
+                                        tempEntryPath,
+                                        extname(tempEntryPath)
+                                    ) + ".d.ts"
+                                )
                             )
                         )
-                    )
-                ),
-                projectFolder: userDir,
-                dtsRollup: {
-                    enabled: true,
-                    untrimmedFilePath: config.typings
-                },
-                ...(config.docsDir && {
-                    docModel: {
+                    ),
+                    projectFolder: userDir,
+                    dtsRollup: {
                         enabled: true,
-                        apiJsonFilePath: join(
-                            tsDocsTempJson,
-                            "<unscopedPackageName>.json"
-                        )
+                        untrimmedFilePath: fillNameTemplate(config.typings, {entrypoint: name})
+                    },
+                    ...(config.docsDir && {
+                        docModel: {
+                            enabled: true,
+                            apiJsonFilePath: join(
+                                tsDocsTempJson,
+                                name + ".json"
+                            )
+                        }
+                    }),
+                    compiler: {
+                        overrideTsconfig: {
+                            ...tsconfig,
+                            compilerOptions: watch
+                                ? {
+                                      ...tsconfig.compilerOptions,
+                                      incremental: true,
+                                      tsBuildInfoFile: resolve(
+                                          cacheDir,
+                                          "typescript.json"
+                                      )
+                                  }
+                                : tsconfig.compilerOptions
+                        }
                     }
-                }),
-                compiler: {
-                    overrideTsconfig: {
-                        ...tsconfig,
-                        compilerOptions: watch
-                            ? {
-                                  ...tsconfig.compilerOptions,
-                                  incremental: true,
-                                  tsBuildInfoFile: resolve(
-                                      cacheDir,
-                                      "typescript.json"
-                                  )
-                              }
-                            : tsconfig.compilerOptions
-                    }
-                }
-            },
-            packageJsonFullPath: await resolveUserFile("package.json"),
-            configObjectFullPath: undefined
-        });
+                },
+                packageJsonFullPath: await resolveUserFile("package.json"),
+                configObjectFullPath: undefined
+            });
 
-        await mkdir(tsDocsTempJson, {recursive: true});
+            const extractorResult = Extractor.invoke(extractorConfig, {
+                localBuild: process.env.CI !== "true",
+                showVerboseMessages: opts.verbose
+            });
 
-        const extractorResult = Extractor.invoke(extractorConfig, {
-            localBuild: process.env.CI !== "true",
-            showVerboseMessages: opts.verbose
-        });
-
-        if (!extractorResult.succeeded) {
-            throw new Error(
+            invariant(
+                extractorResult.succeeded,
                 `Bundling failed with ${extractorResult.errorCount} errors and ${extractorResult.warningCount} warnings`
             );
         }
+
+        await mkdir(tsDocsTempJson, {recursive: true});
     }
 );
 

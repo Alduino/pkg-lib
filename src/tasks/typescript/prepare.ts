@@ -1,16 +1,28 @@
-import {writeFile} from "fs/promises";
-import {basename, dirname, extname, resolve} from "path";
+import {readFile, writeFile} from "fs/promises";
+import {basename, dirname, extname, relative, resolve} from "path";
 import {name} from "../../../package.json";
 import getTemporaryFile from "../../utils/getTemporaryFile";
 import readPackageInformation from "../../utils/readPackageInformation";
 import {getUserDirectory} from "../../utils/resolveUserFile";
 import {createStaticTask} from "../utils";
 
-async function buildRef(file: string, enabled: boolean) {
+async function buildRef(sourcePath: string, file: string, enabled: boolean) {
+    const relativePath = relative(dirname(sourcePath), `${file}.d.ts`);
+
     if (!enabled) return "";
     const {name: theirName} = await readPackageInformation();
-    if (theirName === name) return `/// <reference path="../${file}.d.ts" />`;
+    if (theirName === name) return `/// <reference path="${relativePath}" />`;
     return `/// <reference types="${name}/${file}" />`;
+}
+
+function getEntrypointContent(devRef: string, realSource: string) {
+    if (realSource.startsWith("#!")) {
+        // hashbang needs to be right at the start of the file
+        const lines = realSource.split("\n");
+        return [lines[0], devRef, ...lines.slice(1)].join("\n");
+    } else {
+        return devRef + "\n" + realSource;
+    }
 }
 
 export const createTemporaryFiles = createStaticTask(
@@ -19,21 +31,27 @@ export const createTemporaryFiles = createStaticTask(
         const {config, cacheDir} = ctx;
         const userDir = await getUserDirectory();
 
-        const devRef = await buildRef("dev", config.dev);
+        ctx.tsDeclTempEntry = {};
 
-        const realEntrypointModulePath =
-            "./" + basename(config.entrypoint, extname(config.entrypoint));
+        for (const [name, path] of Object.entries(ctx.config.entrypoints)) {
+            const devRef = await buildRef(path, "dev", config.dev);
+            const realSource = await readFile(path, "utf8");
 
-        const entrypointFileName = getTemporaryFile(
-            dirname(config.entrypoint),
-            "index",
-            "ts"
-        );
-        const entrypointContent = `${devRef}
-export * from ${JSON.stringify(realEntrypointModulePath)};`;
-        await writeFile(entrypointFileName, entrypointContent);
+            const realExt = extname(path);
+            const realBase = basename(path, realExt);
 
-        ctx.tsDeclTempEntry = entrypointFileName;
+            const tempEntrypointFileName = getTemporaryFile(
+                dirname(path),
+                realBase,
+                "ts"
+            );
+
+            const tempEntrypointContent = getEntrypointContent(devRef, realSource);
+
+            await writeFile(tempEntrypointFileName, tempEntrypointContent);
+            ctx.tsDeclTempEntry[name] = tempEntrypointFileName;
+        }
+
         ctx.tsDeclTempOut = resolve(cacheDir, "declarations");
         ctx.tsDocsTempJson = getTemporaryFile(userDir, "docs-json", "tmp");
     }

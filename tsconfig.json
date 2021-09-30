@@ -9,6 +9,6 @@
         "noImplicitAny": true,
         "isolatedModules": true
     },
-    "include": ["src", "types"],
+    "include": ["src", "types", "*.ts"],
     "exclude": ["**/node_modules", "**/.*/"]
 }

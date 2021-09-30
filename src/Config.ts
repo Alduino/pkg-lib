@@ -1,8 +1,10 @@
 import {Platform} from "esbuild";
 
 export default interface Config {
-    entrypoint: string;
+    entrypoint? : string;
+    entrypoints?: Record<string, string>;
     typings: string;
+    mainEntry?: string;
     cjsOut: string;
     cjsDevOut: string;
     cjsProdOut: string;
