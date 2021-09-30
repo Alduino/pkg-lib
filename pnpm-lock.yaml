@@ -34,7 +34,7 @@ specifiers:
   lint-staged: 11.1.2
   node-abort-controller: ^3.0.0
   prettier: 2.4.1
-  resolve-bin: ^0.4.1
+  resolve-bin: ^1.0.0
   sade: ^1.7.4
   tiny-invariant: ^1.1.0
   tiny-warning: ^1.0.3
@@ -59,7 +59,7 @@ dependencies:
   esbuild: 0.13.2
   execa: 5.1.1
   node-abort-controller: 3.0.0
-  resolve-bin: 0.4.1
+  resolve-bin: 1.0.0
   sade: 1.7.4
   tiny-invariant: 1.1.0
   tiny-warning: 1.0.3
@@ -3225,8 +3225,8 @@ packages:
     resolution: {integrity: sha512-NKN5kMDylKuldxYLSUfrbo5Tuzh4hd+2E8NPPX02mZtn1VuREQToYe/ZdlJy+J3uCpfaiGF05e7B8W0iXbQHmg==}
     dev: true
 
-  /resolve-bin/0.4.1:
-    resolution: {integrity: sha512-cPOo/AQjgGONYhFbAcJd1+nuVHKs5NZ8K96Zb6mW+nDl55a7+ya9MWkeYuSMDv/S+YpksZ3EbeAnGWs5x04x8w==}
+  /resolve-bin/1.0.0:
+    resolution: {integrity: sha512-5YJyxyvJZXPQBhkRP6o9DxUXOCKjDbqMlQzOJLwNihJH23jUcib+qfEbLRlx3R8jjX04gJrRRVRz24hWCrAlig==}
     dependencies:
       find-parent-dir: 0.3.1
     dev: false
