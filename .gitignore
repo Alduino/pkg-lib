@@ -92,6 +92,7 @@ dist
 /*.js
 /*.mjs
 /*.d.ts
+!/dev.d.ts
 
 # pnpm store
 .pnpm-store/
