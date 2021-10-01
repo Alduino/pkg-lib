@@ -1,5 +1,18 @@
 # @alduino/pkg-lib
 
+## 0.6.0
+
+### Minor Changes
+
+-   a2f6307: Added machine-readable message in watch mode when there is no TTY
+-   1be6318: Added support for multiple entrypoints. To add a new entrypoint, create a new source file in the root directory of your
+    project. Otherwise, everything should "just work" if you haven't changed any configuration.
+
+### Patch Changes
+
+-   a2f6307: Added check for TTY mode before attempting to set raw mode
+-   cfc457f: Include all potential replacements (`invariant`, `warning`, `__DEV__`) in the cursory check to see if a file needs to be transformed by Babel
+
 ## 0.5.1
 
 ### Patch Changes
