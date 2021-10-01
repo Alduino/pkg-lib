@@ -93,7 +93,9 @@
     },
     "files": [
         "dist",
-        "bin.js",
+        "bin.*",
+        "index.*",
+        "docgen.*",
         "dev.d.ts"
     ]
 }
