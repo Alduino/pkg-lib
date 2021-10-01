@@ -1,13 +1,13 @@
 import {rm} from "fs/promises";
 import {relative, resolve} from "path";
+import readTsconfig from "../../utils/readTsconfig";
 import {createStaticTask} from "../utils";
 import declaration from "./declaration";
 import documentation, {
-    CUSTOM_DOCUMENTER_FILE,
-    CUSTOM_DOCUMENTER_EXTS
+    CUSTOM_DOCUMENTER_EXTS,
+    CUSTOM_DOCUMENTER_FILE
 } from "./documentation";
 import prepare from "./prepare";
-import readTsconfig from "../../utils/readTsconfig";
 
 export default createStaticTask(
     "Typescript features",
@@ -17,25 +17,31 @@ export default createStaticTask(
         await documentation(then);
     },
     {
-        enabled: async () => !!await readTsconfig(),
+        enabled: async () => !!(await readTsconfig()),
         async cleanup({
+            opts,
             paths: {userDir},
             tsDeclTempEntry,
             tsDeclTempOut,
             tsDocsTempJson
         }) {
+            if (opts.noCleanup) return;
+
             await Promise.all([
-                rm(tsDeclTempEntry, {force: true}),
-                rm(
-                    resolve(
-                        tsDeclTempOut,
-                        relative(
-                            userDir,
-                            tsDeclTempEntry.replace(/\.ts$/, ".d.ts")
+                ...Object.values(tsDeclTempEntry)
+                    .map(path => [
+                        rm(path, {force: true}),
+                        rm(
+                            resolve(
+                                tsDeclTempOut,
+                                relative(
+                                    userDir,
+                                    path.replace(/\.ts$/, ".d.ts")
+                                )
+                            )
                         )
-                    ),
-                    {force: true}
-                ),
+                    ])
+                    .flat(),
                 rm(tsDocsTempJson, {recursive: true, force: true})
             ]);
         }

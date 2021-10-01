@@ -15,6 +15,9 @@ interface BuildOptsChanges extends StandardOpts {
     noWarning?: boolean;
     invariant?: string;
     warning?: string;
+    entrypoints?: string;
+    noCleanup?: string;
+    cache?: string;
 }
 
 export type BuildOpts = Partial<Omit<Config, keyof BuildOptsChanges>> &
@@ -22,6 +25,7 @@ export type BuildOpts = Partial<Omit<Config, keyof BuildOptsChanges>> &
 
 export default async function build(opts: BuildOpts): Promise<void> {
     logger.level = opts.verbose ? LogLevel.Verbose : LogLevel.Info;
+    logger.trace("Running with CLI args: %s", opts);
 
     const context: TaskContext = await getListrContext(opts);
 
@@ -37,6 +41,7 @@ export default async function build(opts: BuildOpts): Promise<void> {
                 },
                 {
                     async cleanup(ctx) {
+                        if (ctx.opts.noCleanup) return logger.debug("Not cleaning up as it is disabled");
                         await rm(ctx.cacheDir, {force: true, recursive: true});
                     }
                 }

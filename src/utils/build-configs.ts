@@ -1,5 +1,5 @@
 import {readFile} from "fs/promises";
-import {relative} from "path";
+import {join, relative} from "path";
 import {Node, transform} from "@babel/core";
 import {declare} from "@babel/helper-plugin-utils";
 import type {NodePath} from "@babel/traverse";
@@ -320,7 +320,7 @@ function getCommonEsbuildOptions(
     plugins?: (Plugin | false)[]
 ): Partial<BuildOptions> {
     return {
-        entryPoints: [config.entrypoint],
+        entryPoints: config.entrypoints,
         bundle: true,
         platform: config.platform,
         target: config.target,
@@ -341,6 +341,7 @@ function getCommonEsbuildOptions(
 
 export async function createCommonJsDevBuild(
     config: Config,
+    tempDir: string,
     jsx?: JSX,
     incremental?: boolean
 ): Promise<BuildOptions> {
@@ -348,7 +349,7 @@ export async function createCommonJsDevBuild(
         ...getCommonEsbuildOptions(config, [
             jsx && (await pkglibPlugin(config, jsx, true))
         ]),
-        outfile: config.cjsDevOut,
+        outdir: join(tempDir, "cjs-dev"),
         format: "cjs",
         incremental,
         metafile: incremental,
@@ -363,6 +364,7 @@ export async function createCommonJsDevBuild(
 
 export async function createCommonJsProdBuild(
     config: Config,
+    tempDir: string,
     jsx: JSX,
     incremental?: boolean
 ): Promise<BuildOptions> {
@@ -370,7 +372,7 @@ export async function createCommonJsProdBuild(
         ...getCommonEsbuildOptions(config, [
             jsx && (await pkglibPlugin(config, jsx, false))
         ]),
-        outfile: config.cjsProdOut,
+        outdir: join(tempDir, "cjs-prod"),
         format: "cjs",
         minify: true,
         incremental,
@@ -386,6 +388,7 @@ export async function createCommonJsProdBuild(
 
 export async function createEsmBuild(
     config: Config,
+    tempDir: string,
     jsx: JSX,
     incremental?: boolean
 ): Promise<BuildOptions> {
@@ -393,7 +396,7 @@ export async function createEsmBuild(
         ...getCommonEsbuildOptions(config, [
             jsx && (await pkglibPlugin(config, jsx, null))
         ]),
-        outfile: config.esmOut,
+        outdir: join(tempDir, "esm"),
         format: "esm",
         incremental,
         metafile: incremental

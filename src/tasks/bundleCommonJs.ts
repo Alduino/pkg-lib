@@ -6,6 +6,7 @@ import {
     createCommonJsProdBuild
 } from "../utils/build-configs";
 import createCommonJsEntrypointSource from "../utils/createCommonJsEntrypointSource";
+import fillNameTemplate from "../utils/fillNameTemplate";
 import {createStaticTask} from "./utils";
 
 export default createStaticTask("CommonJS", async (_, then) => {
@@ -14,7 +15,12 @@ export default createStaticTask("CommonJS", async (_, then) => {
             await ctx.commonJsDevBuildResult.rebuild();
         } else {
             ctx.commonJsDevBuildResult = await build(
-                await createCommonJsDevBuild(ctx.config, ctx.jsx, ctx.watch)
+                await createCommonJsDevBuild(
+                    ctx.config,
+                    ctx.paths.tempBundle,
+                    ctx.jsx,
+                    ctx.watch
+                )
             );
         }
     })
@@ -25,6 +31,7 @@ export default createStaticTask("CommonJS", async (_, then) => {
                 ctx.commonJsProdBuildResult = await build(
                     await createCommonJsProdBuild(
                         ctx.config,
+                        ctx.paths.tempBundle,
                         ctx.jsx,
                         ctx.watch
                     )
@@ -32,14 +39,20 @@ export default createStaticTask("CommonJS", async (_, then) => {
             }
         })
         .and("Entrypoint", async ({config}) => {
-            const indexDir = dirname(config.cjsOut);
-            const relativeProdPath = relative(indexDir, config.cjsProdOut);
-            const relativeDevPath = relative(indexDir, config.cjsDevOut);
-            const source = createCommonJsEntrypointSource(
-                "./" + relativeProdPath,
-                "./" + relativeDevPath
-            );
-            await mkdir(dirname(config.cjsOut), {recursive: true});
-            await writeFile(config.cjsOut, source);
+            for (const entrypoint of Object.keys(config.entrypoints)) {
+                const indexFile = fillNameTemplate(config.cjsOut, {entrypoint});
+                const prodFile = fillNameTemplate(config.cjsProdOut, {entrypoint});
+                const devFile = fillNameTemplate(config.cjsDevOut, {entrypoint});
+
+                const indexDir = dirname(indexFile);
+                const relativeProdPath = relative(indexDir, prodFile);
+                const relativeDevPath = relative(indexDir, devFile);
+                const source = createCommonJsEntrypointSource(
+                    "./" + relativeProdPath,
+                    "./" + relativeDevPath
+                );
+                await mkdir(dirname(indexFile), {recursive: true});
+                await writeFile(indexFile, source);
+            }
         });
 });

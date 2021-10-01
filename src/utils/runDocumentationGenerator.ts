@@ -46,9 +46,10 @@ async function compileNodeScript(
     const tempFile = getTemporaryFile(root, "docgen-build", "js");
 
     await build({
-        ...(await createCommonJsDevBuild(config)),
+        ...(await createCommonJsDevBuild(config, "unused")),
         entryPoints: [source],
         outfile: tempFile,
+        outdir: undefined,
         sourcemap: "inline"
     });
 
