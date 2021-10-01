@@ -17,7 +17,7 @@ specifiers:
   '@types/babel__core': 7.1.16
   '@types/babel__helper-plugin-utils': 7.10.0
   '@types/babel__traverse': 7.14.2
-  '@types/micromatch': ^4.0.2
+  '@types/micromatch': 4.0.2
   '@types/node': 16.7.4
   '@types/resolve-bin': 0.4.1
   '@types/sade': 1.7.3
