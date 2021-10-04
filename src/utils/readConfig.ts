@@ -324,16 +324,9 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
             configObj.docsDir = await resolveUserFile(fileConfig.docsDir);
     }
 
-    const hadNoEntrypoint = !configObj.entrypoint;
     if (!configObj.entrypoint && configObj.hasMainEntrypoint !== false) {
         configObj.entrypoint = await detectEntrypoint();
-
-        if (!configObj.mainEntry) {
-            configObj.mainEntry = getEntrypointName(
-                configObj.entrypoint,
-                `src/index.{${entrypointExtensions}}`
-            );
-        }
+        if (!configObj.mainEntry) configObj.mainEntry = "index";
     }
 
     if (!configObj.entrypoints) {
@@ -358,19 +351,10 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
         "No entrypoints are defined"
     );
 
-    if (hadNoEntrypoint) {
-        invariant(
-            !configObj.entrypoint || configObj.mainEntry,
-            "A main entrypoint was automatically detected, but was not configured to have a name. Either add " +
-                "a `main` field to your package.json, disable it by setting `entrypoint` to `false` in .pkglibrc, or" +
-                "remove the src/index file."
-        );
-    } else {
-        invariant(
-            !configObj.entrypoint || configObj.mainEntry,
-            "`mainEntry` must be defined if `entrypoint` is defined"
-        );
-    }
+    invariant(
+        !configObj.entrypoint || configObj.mainEntry,
+        "`mainEntry` must be defined if `entrypoint` is defined"
+    );
 
     invariant(
         !configObj.mainEntry || configObj.entrypoint,
