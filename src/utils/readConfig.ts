@@ -285,12 +285,9 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
             configItem
         );
 
-        if (fileConfig.cjsOut)
-            configObj.cjsOut = await resolveUserFile(fileConfig.cjsOut);
-        if (fileConfig.esmOut)
-            configObj.esmOut = await resolveUserFile(fileConfig.esmOut);
-        if (fileConfig.entrypoint)
-            configObj.entrypoint = await resolveUserFile(fileConfig.entrypoint);
+        if (fileConfig.cjsOut) configObj.cjsOut = fileConfig.cjsOut;
+        if (fileConfig.esmOut) configObj.esmOut = fileConfig.esmOut;
+        if (fileConfig.entrypoint) configObj.entrypoint = fileConfig.entrypoint;
         if (fileConfig.entrypoints) {
             if (!configObj.entrypoints) configObj.entrypoints = {};
             addEntrypoints(
