@@ -84,8 +84,8 @@ For now, the actual code is emitted before tsc runs so you should still be able 
 
 pkg-lib reads its config from a `.pkglibrc` JSON file. Here’s the big list of every configuration option.
 
-- `entrypoint`: The package’s root, will be compiled as an entrypoint named by `mainEntryOut`. Defaults a `src/index`
-  that is a `js`, `ts`, `cjs`, `mjs`, `ejs`, or `esm` file.
+- `entrypoint`: The package’s root, will be compiled as an entrypoint named by `mainEntryOut`. Set to `false` to disable 
+  automatic detection. Defaults a `src/index` that is a `js`, `ts`, `cjs`, `mjs`, `ejs`, or `esm` file.
 - `entrypoints`: A list of named entrypoints. See [here](#custom-entrypoints) for the format of the value. Defaults to
   any files with the above extensions in `./entry` or the root project directory.
 - `typings`: Output for Typescript typings. Defaults to `[entrypoint].d.ts`.

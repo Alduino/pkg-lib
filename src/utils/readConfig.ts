@@ -14,6 +14,7 @@ import getEntrypointMatch from "./getEntrypointMatch";
 import resolveUserFile from "./resolveUserFile";
 
 interface FileConfigChanges {
+    entrypoint?: string | false;
     entrypoints?: Entrypoints;
     invariant?: string[] | string | false;
     warning?: string[] | string | false;
@@ -287,7 +288,10 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
 
         if (fileConfig.cjsOut) configObj.cjsOut = fileConfig.cjsOut;
         if (fileConfig.esmOut) configObj.esmOut = fileConfig.esmOut;
-        if (fileConfig.entrypoint) configObj.entrypoint = fileConfig.entrypoint;
+        if (fileConfig.entrypoint)
+            configObj.entrypoint = await resolveUserFile(fileConfig.entrypoint);
+        else if (fileConfig.entrypoint === false)
+            configObj.hasMainEntrypoint = false;
         if (fileConfig.entrypoints) {
             if (!configObj.entrypoints) configObj.entrypoints = {};
             addEntrypoints(
@@ -320,7 +324,9 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
             configObj.docsDir = await resolveUserFile(fileConfig.docsDir);
     }
 
-    if (!configObj.entrypoint) configObj.entrypoint = await detectEntrypoint();
+    const hadNoEntrypoint = !configObj.entrypoint;
+    if (!configObj.entrypoint && configObj.hasMainEntrypoint !== false)
+        configObj.entrypoint = await detectEntrypoint();
 
     if (!configObj.entrypoints) {
         addEntrypoints(
@@ -344,10 +350,19 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
         "No entrypoints are defined"
     );
 
-    invariant(
-        !configObj.entrypoint || configObj.mainEntry,
-        "`mainEntry` must be defined if `entrypoint` is defined"
-    );
+    if (hadNoEntrypoint) {
+        invariant(
+            !configObj.entrypoint || configObj.mainEntry,
+            "A main entrypoint was automatically detected, but was not configured to have a name. Either add " +
+                "a `main` field to your package.json, disable it by setting `entrypoint` to `false` in .pkglibrc, or" +
+                "remove the src/index file."
+        );
+    } else {
+        invariant(
+            !configObj.entrypoint || configObj.mainEntry,
+            "`mainEntry` must be defined if `entrypoint` is defined"
+        );
+    }
 
     invariant(
         !configObj.mainEntry || configObj.entrypoint,
