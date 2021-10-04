@@ -7,6 +7,7 @@ import {
 } from "../utils/build-configs";
 import createCommonJsEntrypointSource from "../utils/createCommonJsEntrypointSource";
 import fillNameTemplate from "../utils/fillNameTemplate";
+import getHashbang from "../utils/getHashbang";
 import {createStaticTask} from "./utils";
 
 export default createStaticTask("CommonJS", async (_, then) => {
@@ -39,17 +40,25 @@ export default createStaticTask("CommonJS", async (_, then) => {
             }
         })
         .and("Entrypoint", async ({config}) => {
-            for (const entrypoint of Object.keys(config.entrypoints)) {
+            for (const [entrypoint, path] of Object.entries(
+                config.entrypoints
+            )) {
                 const indexFile = fillNameTemplate(config.cjsOut, {entrypoint});
-                const prodFile = fillNameTemplate(config.cjsProdOut, {entrypoint});
-                const devFile = fillNameTemplate(config.cjsDevOut, {entrypoint});
+                const prodFile = fillNameTemplate(config.cjsProdOut, {
+                    entrypoint
+                });
+                const devFile = fillNameTemplate(config.cjsDevOut, {
+                    entrypoint
+                });
 
                 const indexDir = dirname(indexFile);
                 const relativeProdPath = relative(indexDir, prodFile);
                 const relativeDevPath = relative(indexDir, devFile);
+                const hashbang = await getHashbang(path);
                 const source = createCommonJsEntrypointSource(
                     "./" + relativeProdPath,
-                    "./" + relativeDevPath
+                    "./" + relativeDevPath,
+                    hashbang
                 );
                 await mkdir(dirname(indexFile), {recursive: true});
                 await writeFile(indexFile, source);
