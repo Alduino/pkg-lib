@@ -10,10 +10,11 @@ import detectEntrypoint, {
     resolveEntrypoints
 } from "./entrypoint";
 import fillNameTemplate from "./fillNameTemplate";
-import getEntrypointMatch from "./getEntrypointMatch";
+import getEntrypointMatch, {getEntrypointName} from "./getEntrypointMatch";
 import resolveUserFile from "./resolveUserFile";
 
 interface FileConfigChanges {
+    entrypoint?: string | false;
     entrypoints?: Entrypoints;
     invariant?: string[] | string | false;
     warning?: string[] | string | false;
@@ -285,12 +286,12 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
             configItem
         );
 
-        if (fileConfig.cjsOut)
-            configObj.cjsOut = await resolveUserFile(fileConfig.cjsOut);
-        if (fileConfig.esmOut)
-            configObj.esmOut = await resolveUserFile(fileConfig.esmOut);
+        if (fileConfig.cjsOut) configObj.cjsOut = fileConfig.cjsOut;
+        if (fileConfig.esmOut) configObj.esmOut = fileConfig.esmOut;
         if (fileConfig.entrypoint)
             configObj.entrypoint = await resolveUserFile(fileConfig.entrypoint);
+        else if (fileConfig.entrypoint === false)
+            configObj.hasMainEntrypoint = false;
         if (fileConfig.entrypoints) {
             if (!configObj.entrypoints) configObj.entrypoints = {};
             addEntrypoints(
@@ -323,7 +324,10 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
             configObj.docsDir = await resolveUserFile(fileConfig.docsDir);
     }
 
-    if (!configObj.entrypoint) configObj.entrypoint = await detectEntrypoint();
+    if (!configObj.entrypoint && configObj.hasMainEntrypoint !== false) {
+        configObj.entrypoint = await detectEntrypoint();
+        if (!configObj.mainEntry) configObj.mainEntry = "index";
+    }
 
     if (!configObj.entrypoints) {
         addEntrypoints(

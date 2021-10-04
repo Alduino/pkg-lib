@@ -1,7 +1,8 @@
 import {Platform} from "esbuild";
 
 export default interface Config {
-    entrypoint? : string;
+    hasMainEntrypoint?: boolean;
+    entrypoint?: string;
     entrypoints?: Record<string, string>;
     typings: string;
     mainEntry?: string;
