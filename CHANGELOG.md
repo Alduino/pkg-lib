@@ -1,5 +1,11 @@
 # @alduino/pkg-lib
 
+## 0.6.2
+
+### Patch Changes
+
+-   774319a: Adds the hashbang you use in an entrypoint to its CommonJS output
+
 ## 0.6.1
 
 ### Patch Changes
