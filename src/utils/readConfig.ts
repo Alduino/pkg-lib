@@ -10,7 +10,7 @@ import detectEntrypoint, {
     resolveEntrypoints
 } from "./entrypoint";
 import fillNameTemplate from "./fillNameTemplate";
-import getEntrypointMatch from "./getEntrypointMatch";
+import getEntrypointMatch, {getEntrypointName} from "./getEntrypointMatch";
 import resolveUserFile from "./resolveUserFile";
 
 interface FileConfigChanges {
@@ -325,8 +325,16 @@ export default async function readConfig(opts: BuildOpts): Promise<Config> {
     }
 
     const hadNoEntrypoint = !configObj.entrypoint;
-    if (!configObj.entrypoint && configObj.hasMainEntrypoint !== false)
+    if (!configObj.entrypoint && configObj.hasMainEntrypoint !== false) {
         configObj.entrypoint = await detectEntrypoint();
+
+        if (!configObj.mainEntry) {
+            configObj.mainEntry = getEntrypointName(
+                configObj.entrypoint,
+                `src/index.{${entrypointExtensions}}`
+            );
+        }
+    }
 
     if (!configObj.entrypoints) {
         addEntrypoints(
