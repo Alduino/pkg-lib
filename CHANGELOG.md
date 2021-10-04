@@ -1,5 +1,11 @@
 # @alduino/pkg-lib
 
+## 0.6.1
+
+### Patch Changes
+
+-   be2af5f: Fix some issues with entrypoints
+
 ## 0.6.0
 
 ### Minor Changes
