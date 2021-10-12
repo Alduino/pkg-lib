@@ -8,7 +8,7 @@
     },
     "devDependencies": {
         "@alduino/pkg-lib": "file:../..",
-        "@types/react": "17.0.27",
+        "@types/react": "17.0.28",
         "react": "17.0.2"
     },
     "peerDependencies": {
