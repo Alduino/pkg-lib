@@ -41,7 +41,7 @@ specifiers:
   sade: ^1.7.4
   tiny-invariant: ^1.1.0
   tiny-warning: ^1.0.3
-  ts-node: 10.3.0
+  ts-node: 10.3.1
   typescript: 4.4.4
 
 dependencies:
@@ -87,7 +87,7 @@ devDependencies:
   husky: 7.0.4
   lint-staged: 11.2.3
   prettier: 2.4.1
-  ts-node: 10.3.0_456cacd1f779fa2bea8232aae3097e5f
+  ts-node: 10.3.1_456cacd1f779fa2bea8232aae3097e5f
   typescript: 4.4.4
 
 packages:
@@ -3631,8 +3631,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /ts-node/10.3.0_456cacd1f779fa2bea8232aae3097e5f:
-    resolution: {integrity: sha512-RYIy3i8IgpFH45AX4fQHExrT8BxDeKTdC83QFJkNzkvt8uFB6QJ8XMyhynYiKMLxt9a7yuXaDBZNOYS3XjDcYw==}
+  /ts-node/10.3.1_456cacd1f779fa2bea8232aae3097e5f:
+    resolution: {integrity: sha512-Yw3W2mYzhHfCHOICGNJqa0i+rbL0rAyg7ZIHxU+K4pgY8gd2Lh1j+XbHCusJMykbj6RZMJVOY0MlHVd+GOivcw==}
     hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
