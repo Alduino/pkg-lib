@@ -18,7 +18,7 @@ specifiers:
   '@types/babel__helper-plugin-utils': 7.10.0
   '@types/babel__traverse': 7.14.2
   '@types/micromatch': 4.0.2
-  '@types/node': 16.11.6
+  '@types/node': 16.11.7
   '@types/resolve-bin': 0.4.1
   '@types/sade': 1.7.3
   '@typescript-eslint/eslint-plugin': 5.3.1
@@ -76,7 +76,7 @@ devDependencies:
   '@types/babel__helper-plugin-utils': 7.10.0
   '@types/babel__traverse': 7.14.2
   '@types/micromatch': 4.0.2
-  '@types/node': 16.11.6
+  '@types/node': 16.11.7
   '@types/resolve-bin': 0.4.1
   '@types/sade': 1.7.3
   '@typescript-eslint/eslint-plugin': 5.3.1_4653b7803b7453f5f37717b7e1448517
@@ -87,7 +87,7 @@ devDependencies:
   husky: 7.0.4
   lint-staged: 11.2.6
   prettier: 2.4.1
-  ts-node: 10.4.0_0cb88d80cb04d25b21fa3ec194608c65
+  ts-node: 10.4.0_ee928ac548ac44c173bf0d4654ae2c29
   typescript: 4.4.4
 
 packages:
@@ -840,8 +840,8 @@ packages:
     resolution: {integrity: sha512-niAuZrwrjKck4+XhoCw6AAVQBENHftpXw9F4ryk66fTgYaKQ53R4FI7c9vUGGw5vQis1HKBHDR1gcYI/Bq1xvw==}
     dev: true
 
-  /@types/node/16.11.6:
-    resolution: {integrity: sha512-ua7PgUoeQFjmWPcoo9khiPum3Pd60k4/2ZGXt18sm2Slk0W0xZTqt5Y0Ny1NyBiN1EVQ/+FaF9NcY4Qe6rwk5w==}
+  /@types/node/16.11.7:
+    resolution: {integrity: sha512-QB5D2sqfSjCmTuWcBWyJ+/44bcjO7VbjSbOE0ucoVbAsSNQc4Lt6QkgkVXkTDwkL4z/beecZNDvVX15D4P8Jbw==}
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -3610,7 +3610,7 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /ts-node/10.4.0_0cb88d80cb04d25b21fa3ec194608c65:
+  /ts-node/10.4.0_ee928ac548ac44c173bf0d4654ae2c29:
     resolution: {integrity: sha512-g0FlPvvCXSIO1JDF6S232P5jPYqBkRL9qly81ZgAOSU7rwI0stphCgd2kLiCrU9DjQCrJMWEqcNSjQL02s6d8A==}
     hasBin: true
     peerDependencies:
@@ -3629,7 +3629,7 @@ packages:
       '@tsconfig/node12': 1.0.9
       '@tsconfig/node14': 1.0.1
       '@tsconfig/node16': 1.0.2
-      '@types/node': 16.11.6
+      '@types/node': 16.11.7
       acorn: 8.5.0
       acorn-walk: 8.1.1
       arg: 4.1.3
