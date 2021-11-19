@@ -58,7 +58,7 @@
         "chokidar": "^3.5.2",
         "consola": "^2.15.3",
         "esbuild": "^0.13.0",
-        "execa": "^5.1.1",
+        "execa": "^6.0.0",
         "fast-glob": "^3.2.7",
         "micromatch": "^4.0.4",
         "node-abort-controller": "^3.0.0",
