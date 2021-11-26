@@ -122,36 +122,41 @@ class Watcher extends EventEmitter {
             }
         }
 
-        function handleCleanup() {
-            this.off("build:start", handleBuildStart);
-            this.off("build:complete", handleBuildComplete);
-            this.off("cleanup", handleCleanup);
-        }
-
-        this.on("build:start", handleBuildStart);
-        this.on("build:complete", handleBuildComplete);
-        this.on("cleanup", handleCleanup);
-
-        handleBuildComplete();
-
-        process.stdin.on("data", (chunk: Buffer) => {
+        const handleData = (chunk: Buffer) => {
             if (isRunning) return;
 
             const action = String.fromCharCode(chunk[0]);
 
             switch (action) {
                 case "r":
-                    this.queuedBuilds.prepare = BuildState.Queued;
-                    this.queuedBuilds.code = BuildState.Queued;
+                    queuedBuilds.prepare = BuildState.Queued;
+                    queuedBuilds.code = BuildState.Queued;
                     this.trigger();
                     break;
                 case "q":
-                case "\x03" /* ctrl z */:
+                case "\x03" /* ctrl z */
+                :
                     this.cleanup();
                     console.log("Goodbye!");
                     break;
             }
-        });
+        };
+
+        function handleCleanup() {
+            logger.debug("Removing event listeners");
+            process.stdin.off("data", handleData);
+            this.off("build:start", handleBuildStart);
+            this.off("build:complete", handleBuildComplete);
+            this.off("cleanup", handleCleanup);
+            process.stdin.pause();
+        }
+
+        process.stdin.on("data", handleData);
+        this.on("build:start", handleBuildStart);
+        this.on("build:complete", handleBuildComplete);
+        this.on("cleanup", handleCleanup);
+
+        handleBuildComplete();
     }
 
     private async handleUpdate(path: string) {
