@@ -1,3 +1,4 @@
+import EventEmitter from "events";
 import {mkdir, rm} from "fs/promises";
 import {Mutex} from "async-mutex";
 import {watch as chokidar} from "chokidar";
@@ -18,10 +19,6 @@ import {BuildOpts} from "./build";
 
 export type WatchOpts = BuildOpts;
 
-interface ManualTriggerResult {
-    cancel(): void;
-}
-
 const enum BuildState {
     None,
     Queued,
@@ -35,8 +32,7 @@ interface QueuedBuilds extends Record<string, BuildState> {
     typescript?: BuildState;
 }
 
-class Watcher {
-    private lastManualTrigger?: ManualTriggerResult;
+class Watcher extends EventEmitter {
     private lastRun?: ThenResult<TaskContext, void>;
     private queuedBuilds: QueuedBuilds = {};
     private completePromise: Promise<void>;
@@ -51,6 +47,7 @@ class Watcher {
         private readonly context: TaskContext,
         private readonly then: ThenFunction<TaskContext>
     ) {
+        super();
         const {promise, resolve} = createResolvablePromise<void>();
         this.completePromise = promise;
         this.resolveCompletePromise = resolve;
@@ -90,51 +87,71 @@ class Watcher {
         this.watcher.on("unlink", path => this.handleUpdate(path));
     }
 
-    setupManualTrigger() {
-        // only allow one manual trigger-er at once
-        this.lastManualTrigger?.cancel();
+    initialiseInteraction() {
+        let isRunning = false;
 
-        process.stdin.resume();
+        const queuedBuilds = this.queuedBuilds;
 
-        if (process.stdin.isTTY) {
-            logger.info("Press `r` to build again, or `q` to quit gracefully.");
-        } else {
-            const newBuildState = Watcher.makeQueuedBuildsString(
-                this.queuedBuilds
-            );
+        function handleBuildStart() {
+            isRunning = true;
 
-            process.stdout.write(
-                `@pl[w:c:${newBuildState}] Watch mode build complete. Type r+enter to build again, or q+enter to quit.\n`
-            );
+            if (!process.stdin.isTTY) {
+                const newBuildState = Watcher.makeQueuedBuildsString(
+                    queuedBuilds
+                );
+
+                process.stdout.write(
+                    `@pl[w:b:${newBuildState}] Beginning new watch mode build.\n`
+                );
+            }
         }
 
-        const handler = (chunk: Buffer) => {
-            switch (chunk.toString("ascii")[0]) {
+        function handleBuildComplete() {
+            isRunning = false;
+
+            if (process.stdin.isTTY) {
+                logger.info("Press `r` to build again, or `q` to quit.");
+            } else {
+                const newBuildState = Watcher.makeQueuedBuildsString(
+                    queuedBuilds
+                );
+
+                process.stdout.write(
+                    `@pl[w:c:${newBuildState}] Watch mode build complete. Type r+enter to build again, or q+enter to quit.\n`
+                );
+            }
+        }
+
+        function handleCleanup() {
+            this.off("build:start", handleBuildStart);
+            this.off("build:complete", handleBuildComplete);
+            this.off("cleanup", handleCleanup);
+        }
+
+        this.on("build:start", handleBuildStart);
+        this.on("build:complete", handleBuildComplete);
+        this.on("cleanup", handleCleanup);
+
+        handleBuildComplete();
+
+        process.stdin.on("data", (chunk: Buffer) => {
+            if (isRunning) return;
+
+            const action = String.fromCharCode(chunk[0]);
+
+            switch (action) {
                 case "r":
-                    cancel();
                     this.queuedBuilds.prepare = BuildState.Queued;
                     this.queuedBuilds.code = BuildState.Queued;
                     this.trigger();
                     break;
                 case "q":
-                case "\x03":
-                    cancel();
+                case "\x03" /* ctrl z */:
                     this.cleanup();
                     console.log("Goodbye!");
                     break;
             }
-        };
-
-        process.stdin.on("data", handler);
-
-        const cancel = () => {
-            // erase the log line and stop listening
-            process.stdout.write("\x1b[1A\x1b[K");
-            process.stdin.off("data", handler);
-            process.stdin.pause();
-        };
-
-        return {cancel} as ManualTriggerResult;
+        });
     }
 
     private async handleUpdate(path: string) {
@@ -170,18 +187,9 @@ class Watcher {
     private async trigger(): Promise<void> {
         this.lastRun?.cancel();
 
-        if (!process.stdin.isTTY) {
-            const newBuildState = Watcher.makeQueuedBuildsString(
-                this.queuedBuilds
-            );
-            process.stdout.write(
-                `@pl[w:b:${newBuildState}] Beginning new watch mode build.\n`
-            );
-        }
+        this.emit("build:start");
 
         await this.buildMutex.runExclusive(async () => {
-            this.lastManualTrigger?.cancel();
-
             const {promise, resolve} = createResolvablePromise<void>();
 
             const handleGotInnerTask = async (
@@ -209,7 +217,6 @@ class Watcher {
                         this.queuedBuilds.typescript = BuildState.None;
                 }
 
-                this.setupManualTrigger();
                 resolve();
             };
 
@@ -262,10 +269,12 @@ class Watcher {
 
             await promise;
         });
+
+        this.emit("build:complete");
     }
 
     private async cleanup() {
-        this.lastManualTrigger?.cancel();
+        this.emit("cleanup");
 
         this.context.commonJsDevBuildResult?.rebuild.dispose();
         this.context.commonJsProdBuildResult?.rebuild.dispose();
@@ -317,7 +326,7 @@ export default async function watch(opts: WatchOpts): Promise<void> {
                     await then("Watch for changes", async (ctx, then) => {
                         const watcher = new Watcher(ctx, then);
                         watcher.init();
-                        watcher.setupManualTrigger();
+                        watcher.initialiseInteraction();
                         await watcher.complete;
                     });
                 },
