@@ -74,7 +74,7 @@
         "@types/babel__helper-plugin-utils": "7.10.0",
         "@types/babel__traverse": "7.14.2",
         "@types/micromatch": "4.0.2",
-        "@types/node": "16.11.10",
+        "@types/node": "16.11.11",
         "@types/resolve-bin": "0.4.1",
         "@types/sade": "1.7.3",
         "@typescript-eslint/eslint-plugin": "5.5.0",
