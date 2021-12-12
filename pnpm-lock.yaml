@@ -20,7 +20,7 @@ specifiers:
   '@types/micromatch': 4.0.2
   '@types/node': 16.11.12
   '@types/resolve-bin': 0.4.1
-  '@types/sade': 1.7.3
+  '@types/sade': 1.7.4
   '@typescript-eslint/eslint-plugin': 5.6.0
   '@typescript-eslint/parser': 5.6.0
   async-mutex: ^0.3.1
@@ -78,7 +78,7 @@ devDependencies:
   '@types/micromatch': 4.0.2
   '@types/node': 16.11.12
   '@types/resolve-bin': 0.4.1
-  '@types/sade': 1.7.3
+  '@types/sade': 1.7.4
   '@typescript-eslint/eslint-plugin': 5.6.0_0d0cecf582ba45923647a091322795b0
   '@typescript-eslint/parser': 5.6.0_eslint@8.4.1+typescript@4.5.3
   eslint: 8.4.1
@@ -847,8 +847,8 @@ packages:
     resolution: {integrity: sha512-Ku5+GPFa12S3W26Uwtw+xyrtIpaZsGYHH6zxNbZlstmlvMYSZRzOwzwsXbxlVUbHyUucctSyuFtu6bNxwYomIw==}
     dev: false
 
-  /@types/sade/1.7.3:
-    resolution: {integrity: sha512-OFZ2ZotV3+kA3utubCtPDDM8PTdqmpgmEM+hqxyqzfX2ACpUtTnFUxDCSJIJ/249JbIyfjKWyO0FFtIlrLS9YA==}
+  /@types/sade/1.7.4:
+    resolution: {integrity: sha512-6ys13kmtlY0aIOz4KtMdeBD9BHs6vSE3aRcj4vAZqXjypT2el8WZt6799CMjElVgh1cbOH/t3vrpQ4IpwytcPA==}
     dependencies:
       '@types/mri': 1.1.1
     dev: true
