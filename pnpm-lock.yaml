@@ -33,7 +33,7 @@ specifiers:
   execa: ^5.1.1
   fast-glob: ^3.2.7
   husky: 7.0.4
-  lint-staged: 12.1.7
+  lint-staged: 12.2.0
   micromatch: ^4.0.4
   node-abort-controller: ^3.0.0
   prettier: 2.5.1
@@ -85,7 +85,7 @@ devDependencies:
   eslint-plugin-import: 2.25.4_eslint@8.7.0
   eslint-plugin-react: 7.28.0_eslint@8.7.0
   husky: 7.0.4
-  lint-staged: 12.1.7
+  lint-staged: 12.2.0
   prettier: 2.5.1
   ts-node: 10.4.0_0a60133a064fc169bdb31577a77f9d57
   typescript: 4.5.4
@@ -2585,8 +2585,8 @@ packages:
     resolution: {integrity: sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=}
     dev: true
 
-  /lint-staged/12.1.7:
-    resolution: {integrity: sha512-bltv/ejiLWtowExpjU+s5z8j1Byjg9AlmaAjMmqNbIicY69u6sYIwXGg0dCn0TlkrrY2CphtHIXAkbZ+1VoWQQ==}
+  /lint-staged/12.2.0:
+    resolution: {integrity: sha512-TnNciMBhmEqzqM+RvzqqdvrG4TsI8wCDMX1Vg9+rj2Y9uY70Nq84Mb1WOIiwxW9l5tUlCOqtY5La71RM2fSgfA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:
