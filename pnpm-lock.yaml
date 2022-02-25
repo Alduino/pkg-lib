@@ -29,7 +29,7 @@ specifiers:
   esbuild: ^0.14.0
   eslint: 8.9.0
   eslint-plugin-import: 2.25.4
-  eslint-plugin-react: 7.29.0
+  eslint-plugin-react: 7.29.1
   execa: ^5.1.1
   fast-glob: ^3.2.7
   husky: 7.0.4
@@ -83,7 +83,7 @@ devDependencies:
   '@typescript-eslint/parser': 5.12.1_eslint@8.9.0+typescript@4.5.5
   eslint: 8.9.0
   eslint-plugin-import: 2.25.4_eslint@8.9.0
-  eslint-plugin-react: 7.29.0_eslint@8.9.0
+  eslint-plugin-react: 7.29.1_eslint@8.9.0
   husky: 7.0.4
   lint-staged: 12.3.4
   prettier: 2.5.1
@@ -1786,8 +1786,8 @@ packages:
       tsconfig-paths: 3.12.0
     dev: true
 
-  /eslint-plugin-react/7.29.0_eslint@8.9.0:
-    resolution: {integrity: sha512-lwbGCO4cEotwl+Wo0zkkjzbhxEzFcG6lv4mpWXfxKzXNZMF5wDEQqykPetB4mi3uTLGVSXxmgVlBMzHTHue6cA==}
+  /eslint-plugin-react/7.29.1_eslint@8.9.0:
+    resolution: {integrity: sha512-WtzRpHMhsOX05ZrkyaaqmLl2uXGqmYooCfBxftJKlkYdsltiufGgfU7uuoHwR2lBam2Kh/EIVID4aU9e3kbCMA==}
     engines: {node: '>=4'}
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
