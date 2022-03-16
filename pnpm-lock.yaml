@@ -33,7 +33,7 @@ specifiers:
   execa: ^5.1.1
   fast-glob: ^3.2.7
   husky: 7.0.4
-  lint-staged: 12.3.5
+  lint-staged: 12.3.6
   micromatch: ^4.0.4
   node-abort-controller: ^3.0.0
   prettier: 2.6.0
@@ -85,7 +85,7 @@ devDependencies:
   eslint-plugin-import: 2.25.4_eslint@8.11.0
   eslint-plugin-react: 7.29.4_eslint@8.11.0
   husky: 7.0.4
-  lint-staged: 12.3.5
+  lint-staged: 12.3.6
   prettier: 2.6.0
   ts-node: 10.7.0_045cabcbf8818eda83522fe731c87088
   typescript: 4.6.2
@@ -2518,8 +2518,8 @@ packages:
     resolution: {integrity: sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=}
     dev: true
 
-  /lint-staged/12.3.5:
-    resolution: {integrity: sha512-oOH36RUs1It7b9U/C7Nl/a0sLfoIBcMB8ramiB3nuJ6brBqzsWiUAFSR5DQ3yyP/OR7XKMpijtgKl2DV1lQ3lA==}
+  /lint-staged/12.3.6:
+    resolution: {integrity: sha512-tVNyl/HsAnplKh4oaoRNzyZLm0PE/6VaBUXvd/gA9zhYCC/+ivZwiwpoT6jOxcLzuIOjP19wW+mfOi7/Bw4c1A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:
@@ -2533,6 +2533,7 @@ packages:
       micromatch: 4.0.4
       normalize-path: 3.0.0
       object-inspect: 1.12.0
+      pidtree: 0.5.0
       string-argv: 0.3.1
       supports-color: 9.2.1
       yaml: 1.10.2
@@ -2976,6 +2977,12 @@ packages:
   /picomatch/2.3.0:
     resolution: {integrity: sha512-lY1Q/PiJGC2zOv/z391WOTD+Z02bCgsFfvxoXXf6h7kv9o+WmsmzYqrAwY63sNgOxE4xEdq0WyUnXfKeBrSvYw==}
     engines: {node: '>=8.6'}
+
+  /pidtree/0.5.0:
+    resolution: {integrity: sha512-9nxspIM7OpZuhBxPg73Zvyq7j1QMPMPsGKTqRc2XOaFQauDvoNz9fM1Wdkjmeo7l9GXOZiRs97sPkuayl39wjA==}
+    engines: {node: '>=0.10'}
+    hasBin: true
+    dev: true
 
   /pify/4.0.1:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
