@@ -16,7 +16,7 @@ specifiers:
   '@microsoft/tsdoc': ^0.13.2
   '@types/babel__core': 7.1.19
   '@types/babel__helper-plugin-utils': 7.10.0
-  '@types/babel__traverse': 7.17.0
+  '@types/babel__traverse': 7.17.1
   '@types/micromatch': 4.0.2
   '@types/node': 16.11.29
   '@types/resolve-bin': 0.4.1
@@ -74,7 +74,7 @@ devDependencies:
   '@changesets/cli': 2.22.0
   '@types/babel__core': 7.1.19
   '@types/babel__helper-plugin-utils': 7.10.0
-  '@types/babel__traverse': 7.17.0
+  '@types/babel__traverse': 7.17.1
   '@types/micromatch': 4.0.2
   '@types/node': 16.11.29
   '@types/resolve-bin': 0.4.1
@@ -781,7 +781,7 @@ packages:
       '@babel/types': 7.17.0
       '@types/babel__generator': 7.6.3
       '@types/babel__template': 7.4.1
-      '@types/babel__traverse': 7.17.0
+      '@types/babel__traverse': 7.17.1
     dev: true
 
   /@types/babel__generator/7.6.3:
@@ -803,8 +803,8 @@ packages:
       '@babel/types': 7.17.0
     dev: true
 
-  /@types/babel__traverse/7.17.0:
-    resolution: {integrity: sha512-r8aveDbd+rzGP+ykSdF3oPuTVRWRfbBiHl0rVDM2yNEmSMXfkObQLV46b4RnCv3Lra51OlfnZhkkFaDl2MIRaA==}
+  /@types/babel__traverse/7.17.1:
+    resolution: {integrity: sha512-kVzjari1s2YVi77D3w1yuvohV2idweYXMCDzqBiVNN63TcDWrIlTVOYpqVrvbbyOE/IyzBoTKF0fdnLPEORFxA==}
     dependencies:
       '@babel/types': 7.17.0
     dev: true
