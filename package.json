@@ -68,7 +68,7 @@
         "tiny-warning": "^1.0.3"
     },
     "devDependencies": {
-        "@babel/types": "7.17.12",
+        "@babel/types": "7.18.0",
         "@changesets/cli": "2.22.0",
         "@types/babel__core": "7.1.19",
         "@types/babel__helper-plugin-utils": "7.10.0",
