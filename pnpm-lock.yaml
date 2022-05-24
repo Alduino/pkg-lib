@@ -33,7 +33,7 @@ specifiers:
   execa: ^5.1.1
   fast-glob: ^3.2.7
   husky: 7.0.4
-  lint-staged: 12.4.1
+  lint-staged: 12.4.2
   micromatch: ^4.0.4
   node-abort-controller: ^3.0.0
   prettier: 2.6.2
@@ -85,7 +85,7 @@ devDependencies:
   eslint-plugin-import: 2.26.0_344a44770e94ca865603797fb8acf8d9
   eslint-plugin-react: 7.30.0_eslint@8.16.0
   husky: 7.0.4
-  lint-staged: 12.4.1
+  lint-staged: 12.4.2
   prettier: 2.6.2
   ts-node: 10.8.0_886bd2d6c7dc0003e7c3b88eefc7328e
   typescript: 4.6.4
@@ -1470,19 +1470,6 @@ packages:
       ms: 2.1.2
     dev: false
 
-  /debug/4.3.3_supports-color@9.2.1:
-    resolution: {integrity: sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.2
-      supports-color: 9.2.1
-    dev: true
-
   /debug/4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -1493,6 +1480,19 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
+    dev: true
+
+  /debug/4.3.4_supports-color@9.2.1:
+    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
+      supports-color: 9.2.1
     dev: true
 
   /decamelize-keys/1.1.0:
@@ -2638,15 +2638,15 @@ packages:
     resolution: {integrity: sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=}
     dev: true
 
-  /lint-staged/12.4.1:
-    resolution: {integrity: sha512-PTXgzpflrQ+pODQTG116QNB+Q6uUTDg5B5HqGvNhoQSGt8Qy+MA/6zSnR8n38+sxP5TapzeQGTvoKni0KRS8Vg==}
+  /lint-staged/12.4.2:
+    resolution: {integrity: sha512-JAJGIzY/OioIUtrRePr8go6qUxij//mL+RGGoFKU3VWQRtIHgWoHizSqH0QVn2OwrbXS9Q6CICQjfj+E5qvrXg==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:
       cli-truncate: 3.1.0
       colorette: 2.0.16
       commander: 8.3.0
-      debug: 4.3.3_supports-color@9.2.1
+      debug: 4.3.4_supports-color@9.2.1
       execa: 5.1.1
       lilconfig: 2.0.4
       listr2: 4.0.1
