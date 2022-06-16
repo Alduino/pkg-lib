@@ -2,12 +2,12 @@ lockfileVersion: 5.3
 
 specifiers:
   '@alduino/pkg-lib': file:../..
-  '@types/react': 17.0.46
+  '@types/react': 17.0.47
   react: 17.0.2
 
 devDependencies:
   '@alduino/pkg-lib': link:../..
-  '@types/react': 17.0.46
+  '@types/react': 17.0.47
   react: 17.0.2
 
 packages:
@@ -16,8 +16,8 @@ packages:
     resolution: {integrity: sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ==}
     dev: true
 
-  /@types/react/17.0.46:
-    resolution: {integrity: sha512-zNAJVEO9dBEQLPa/OuedGfx92/UlD+1rNxSv2qVWUQZ+orEtLUWFgZ08xfyI9TAZLnmWzZDtssAsgtbXT7Ew0g==}
+  /@types/react/17.0.47:
+    resolution: {integrity: sha512-mk0BL8zBinf2ozNr3qPnlu1oyVTYq+4V7WA76RgxUAtf0Em/Wbid38KN6n4abEkvO4xMTBWmnP1FtQzgkEiJoA==}
     dependencies:
       '@types/prop-types': 15.7.4
       '@types/scheduler': 0.16.2
