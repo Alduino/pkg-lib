@@ -13,7 +13,7 @@ specifiers:
   '@microsoft/api-documenter': ^7.13.39
   '@microsoft/api-extractor': ^7.18.5
   '@microsoft/api-extractor-model': ^7.13.5
-  '@microsoft/tsdoc': ^0.13.2
+  '@microsoft/tsdoc': ^0.14.0
   '@types/babel__core': 7.1.19
   '@types/babel__helper-plugin-utils': 7.10.0
   '@types/babel__traverse': 7.17.1
@@ -55,7 +55,7 @@ dependencies:
   '@microsoft/api-documenter': 7.13.39
   '@microsoft/api-extractor': 7.18.5
   '@microsoft/api-extractor-model': 7.13.5
-  '@microsoft/tsdoc': 0.13.2
+  '@microsoft/tsdoc': 0.14.1
   async-mutex: 0.3.1
   chokidar: 3.5.2
   consola: 2.15.3
@@ -718,6 +718,10 @@ packages:
 
   /@microsoft/tsdoc/0.13.2:
     resolution: {integrity: sha512-WrHvO8PDL8wd8T2+zBGKrMwVL5IyzR3ryWUsl0PXgEV0QHup4mTLi0QcATefGI6Gx9Anu7vthPyyyLpY0EpiQg==}
+    dev: false
+
+  /@microsoft/tsdoc/0.14.1:
+    resolution: {integrity: sha512-6Wci+Tp3CgPt/B9B0a3J4s3yMgLNSku6w5TV6mN+61C71UqsRBv2FUibBf3tPGlNxebgPHMEUzKpb1ggE8KCKw==}
     dev: false
 
   /@nodelib/fs.scandir/2.1.5:
