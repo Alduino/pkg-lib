@@ -1,5 +1,11 @@
 # @alduino/pkg-lib
 
+## 0.6.3
+
+### Patch Changes
+
+-   7f7212c: Fix memory leak in watch mode
+
 ## 0.6.2
 
 ### Patch Changes
